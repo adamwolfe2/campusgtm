@@ -25,36 +25,45 @@ export default function ModuleEditorPage() {
 
   useEffect(() => {
     const loadModule = async () => {
-      const workspaceId = params.id as string;
-      const moduleId = params.moduleId as string;
+      try {
+        const workspaceId = params.id as string;
+        const moduleId = params.moduleId as string;
 
-      if (!workspaceId || !moduleId) {
-        toast.error("Invalid workspace or module ID");
+        if (!workspaceId || !moduleId) {
+          toast.error("Invalid workspace or module ID");
+          router.push("/dashboard");
+          return;
+        }
+
+        const loadedWorkspace = await getWorkspace(workspaceId, user?.id);
+        if (!loadedWorkspace) {
+          toast.error("Workspace not found");
+          router.push("/dashboard");
+          return;
+        }
+
+        const loadedModule = loadedWorkspace.modules.find((m) => m.id === moduleId);
+        if (!loadedModule) {
+          toast.error("Module not found");
+          router.push(`/workspace/${workspaceId}`);
+          return;
+        }
+
+        setWorkspace(loadedWorkspace);
+        setModule(loadedModule);
+
+        // Convert blocks to HTML for Tiptap
+        const html = blocksToHTML(loadedModule.blocks);
+        setContent(html);
+      } catch (error) {
+        console.error("Failed to load module:", error);
+        toast.error(
+          error instanceof Error ? error.message : "Failed to load module"
+        );
         router.push("/dashboard");
-        return;
+      } finally {
+        setIsLoading(false);
       }
-
-      const loadedWorkspace = await getWorkspace(workspaceId, user?.id);
-      if (!loadedWorkspace) {
-        toast.error("Workspace not found");
-        router.push("/dashboard");
-        return;
-      }
-
-      const loadedModule = loadedWorkspace.modules.find((m) => m.id === moduleId);
-      if (!loadedModule) {
-        toast.error("Module not found");
-        router.push(`/workspace/${workspaceId}`);
-        return;
-      }
-
-      setWorkspace(loadedWorkspace);
-      setModule(loadedModule);
-
-      // Convert blocks to HTML for Tiptap
-      const html = blocksToHTML(loadedModule.blocks);
-      setContent(html);
-      setIsLoading(false);
     };
 
     loadModule();

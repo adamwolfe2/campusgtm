@@ -21,22 +21,31 @@ export default function WorkspacePage() {
 
   useEffect(() => {
     const loadWorkspace = async () => {
-      const id = params.id as string;
-      if (!id) {
-        toast.error("Invalid workspace ID");
-        router.push("/dashboard");
-        return;
-      }
+      try {
+        const id = params.id as string;
+        if (!id) {
+          toast.error("Invalid workspace ID");
+          router.push("/dashboard");
+          return;
+        }
 
-      const loadedWorkspace = await getWorkspace(id, user?.id);
-      if (!loadedWorkspace) {
-        toast.error("Workspace not found");
-        router.push("/dashboard");
-        return;
-      }
+        const loadedWorkspace = await getWorkspace(id, user?.id);
+        if (!loadedWorkspace) {
+          toast.error("Workspace not found");
+          router.push("/dashboard");
+          return;
+        }
 
-      setWorkspace(loadedWorkspace);
-      setIsLoading(false);
+        setWorkspace(loadedWorkspace);
+      } catch (error) {
+        console.error("Failed to load workspace:", error);
+        toast.error(
+          error instanceof Error ? error.message : "Failed to load workspace"
+        );
+        router.push("/dashboard");
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     loadWorkspace();
