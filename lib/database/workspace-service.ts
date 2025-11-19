@@ -29,7 +29,8 @@ export async function createWorkspace(
   name: string,
   companyName: string,
   companyUrl?: string,
-  userId?: string
+  userId?: string,
+  faviconUrl?: string
 ): Promise<WorkspaceWithModules> {
   if (isSupabaseConfigured() && userId) {
     // Validate inputs
@@ -53,6 +54,7 @@ export async function createWorkspace(
         name: validated.name,
         company_name: validated.companyName,
         company_url: validated.companyUrl || null,
+        favicon_url: faviconUrl || null,
       } as any) // Type assertion needed until Supabase types are generated
       .select()
       .single();
@@ -68,6 +70,7 @@ export async function createWorkspace(
       name: workspace.name,
       companyName: workspace.company_name,
       companyUrl: workspace.company_url || undefined,
+      faviconUrl: workspace.favicon_url || undefined,
       modules: [],
       createdAt: new Date(workspace.created_at),
       updatedAt: new Date(workspace.updated_at),

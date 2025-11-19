@@ -31,6 +31,7 @@ export interface Workspace {
   name: string;
   companyName: string;
   companyUrl?: string;
+  faviconUrl?: string;
   createdAt: Date;
   updatedAt: Date;
 }
