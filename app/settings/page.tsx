@@ -54,7 +54,8 @@ export default function SettingsPage() {
         >
           <AIProviderSettings
             onSave={(configs) => {
-              console.log("Saved configurations:", configs);
+              // AI provider configurations are saved to localStorage
+              // by the AIProviderSettings component
             }}
           />
         </motion.div>

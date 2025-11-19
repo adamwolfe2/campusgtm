@@ -217,8 +217,8 @@ export function createDefaultSlashCommands(editor: {
       icon: Sparkles,
       keywords: ["ai", "generate", "assistant", "gemini"],
       command: () => {
-        // This will be implemented later with AI block
-        console.log("AI Generator triggered");
+        // TODO: Implement AI block generation
+        // This will trigger AI to generate content at cursor position
       },
     },
   ];
