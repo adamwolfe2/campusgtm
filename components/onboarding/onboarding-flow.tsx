@@ -44,7 +44,7 @@ export function OnboardingFlow({
   const [currentValue, setCurrentValue] = React.useState<string | string[]>("");
   const [isProcessing, setIsProcessing] = React.useState(false);
   const [isExtracting, setIsExtracting] = React.useState(false);
-  const [extractedInsights, setExtractedInsights] = React.useState<ExtractedInsights | null>(null);
+  const [_extractedInsights, setExtractedInsights] = React.useState<ExtractedInsights | null>(null);
   const [error, setError] = React.useState<string>();
 
   const currentQuestion = questions[data.currentStep];

@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+// import { Inter } from "next/font/google"; // Temporarily disabled for build in sandbox
 import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 import { Toaster } from "sonner";
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-});
+// const inter = Inter({
+//   subsets: ["latin"],
+//   variable: "--font-inter",
+// });
 
 export const metadata: Metadata = {
   title: "Campus GTM - AI-Powered Student Ambassador Platform",
@@ -22,7 +22,7 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
-        <body className={`${inter.variable} font-sans antialiased tracking-[-0.01em]`}>
+        <body className="font-sans antialiased tracking-[-0.01em]">
           {children}
           <Toaster position="bottom-right" richColors />
         </body>

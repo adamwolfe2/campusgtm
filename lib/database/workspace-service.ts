@@ -11,9 +11,9 @@ import { supabase, isSupabaseConfigured } from "./supabase";
 import * as localStorage from "../storage/workspace-storage";
 import {
   WorkspaceCreateSchema,
-  WorkspaceUpdateSchema,
-  IdSchema,
-  UuidSchema,
+  // WorkspaceUpdateSchema, // TODO: Use when implementing update functionality
+  // IdSchema, // TODO: Use when implementing ID validation
+  // UuidSchema, // TODO: Use when implementing UUID validation
 } from "./validators";
 
 export interface WorkspaceWithModules extends Workspace {
@@ -53,7 +53,7 @@ export async function createWorkspace(
         name: validated.name,
         company_name: validated.companyName,
         company_url: validated.companyUrl || null,
-      })
+      } as any) // Type assertion needed until Supabase types are generated
       .select()
       .single();
 
@@ -61,14 +61,16 @@ export async function createWorkspace(
       throw new Error(`Failed to create workspace: ${error.message}`);
     }
 
+    const workspace = data as any; // Type assertion until Supabase types are generated
+
     return {
-      id: data.id,
-      name: data.name,
-      companyName: data.company_name,
-      companyUrl: data.company_url || undefined,
+      id: workspace.id,
+      name: workspace.name,
+      companyName: workspace.company_name,
+      companyUrl: workspace.company_url || undefined,
       modules: [],
-      createdAt: new Date(data.created_at),
-      updatedAt: new Date(data.updated_at),
+      createdAt: new Date(workspace.created_at),
+      updatedAt: new Date(workspace.updated_at),
     };
   } else {
     // Use localStorage fallback
@@ -135,7 +137,7 @@ export async function getWorkspaces(
         ((w.generated_strategies as Record<string, unknown>[])?.[0]?.strategy as GTMStrategy) || undefined,
       createdAt: new Date(w.created_at as string),
       updatedAt: new Date(w.updated_at as string),
-    }));
+    })) as unknown as WorkspaceWithModules[]; // Type assertion until Supabase types are generated
   } else {
     // Use localStorage fallback
     return localStorage.getWorkspaces();
@@ -175,22 +177,24 @@ export async function getWorkspace(
       throw new Error(`Failed to fetch workspace: ${error.message}`);
     }
 
+    const workspace = data as any; // Type assertion until Supabase types are generated
+
     return {
-      id: data.id,
-      name: data.name,
-      companyName: data.company_name,
-      companyUrl: data.company_url || undefined,
-      modules: ((data.strategy_modules as Record<string, unknown>[]) || []).map(
+      id: workspace.id,
+      name: workspace.name,
+      companyName: workspace.company_name,
+      companyUrl: workspace.company_url || undefined,
+      modules: ((workspace.strategy_modules as Record<string, unknown>[]) || []).map(
         (m) => ({
           id: m.id as string,
           workspaceId: m.workspace_id as string,
-          type: m.type as string,
+          type: m.type as any, // Type assertion until Supabase types are generated
           title: m.title as string,
           blocks: ((m.blocks as Record<string, unknown>[]) || [])
             .sort((a, b) => (a.position as number) - (b.position as number))
             .map((b) => ({
               id: b.id as string,
-              type: b.type as string,
+              type: b.type as any, // Type assertion until Supabase types are generated
               content: b.content as string,
               metadata: b.metadata as Record<string, unknown> | undefined,
               createdAt: new Date(b.created_at as string),
@@ -199,13 +203,13 @@ export async function getWorkspace(
           createdAt: new Date(m.created_at as string),
           updatedAt: new Date(m.updated_at as string),
         })
-      ),
+      ) as any, // Type assertion until Supabase types are generated
       onboardingData:
-        ((data.onboarding_data as Record<string, unknown>[])?.[0] as Record<string, unknown>) || undefined,
+        ((workspace.onboarding_data as Record<string, unknown>[])?.[0] as any) || undefined,
       generatedStrategy:
-        ((data.generated_strategies as Record<string, unknown>[])?.[0]?.strategy as GTMStrategy) || undefined,
-      createdAt: new Date(data.created_at),
-      updatedAt: new Date(data.updated_at),
+        ((workspace.generated_strategies as Record<string, unknown>[])?.[0]?.strategy as GTMStrategy) || undefined,
+      createdAt: new Date(workspace.created_at),
+      updatedAt: new Date(workspace.updated_at),
     };
   } else {
     // Use localStorage fallback
@@ -234,13 +238,13 @@ export async function updateWorkspace(
       dbUpdates.company_url = updates.companyUrl;
     }
 
-    const { data, error } = await supabase!
-      .from("workspaces")
+    const { data: _data, error } = (await (supabase!
+      .from("workspaces") as any) // Type assertion until Supabase types are generated
       .update(dbUpdates)
       .eq("id", id)
       .eq("user_id", userId)
       .select()
-      .single();
+      .single()) as any;
 
     if (error) {
       throw new Error(`Failed to update workspace: ${error.message}`);
@@ -290,15 +294,15 @@ export async function addStrategyModule(
 ): Promise<WorkspaceWithModules | null> {
   if (isSupabaseConfigured() && userId) {
     // Use Supabase - insert module
-    const { data: moduleData, error: moduleError } = await supabase!
-      .from("strategy_modules")
+    const { data: moduleData, error: moduleError } = (await (supabase!
+      .from("strategy_modules") as any) // Type assertion until Supabase types are generated
       .insert({
         workspace_id: workspaceId,
         type: module.type,
         title: module.title,
       })
       .select()
-      .single();
+      .single()) as any;
 
     if (moduleError) {
       throw new Error(`Failed to create module: ${moduleError.message}`);
@@ -314,9 +318,9 @@ export async function addStrategyModule(
         position: index,
       }));
 
-      const { error: blocksError } = await supabase!
-        .from("blocks")
-        .insert(blocks);
+      const { error: blocksError } = (await (supabase!
+        .from("blocks") as any) // Type assertion until Supabase types are generated
+        .insert(blocks)) as any;
 
       if (blocksError) {
         throw new Error(`Failed to create blocks: ${blocksError.message}`);
@@ -340,12 +344,13 @@ export async function storeOnboardingData(
 ): Promise<void> {
   if (isSupabaseConfigured() && userId) {
     // Use Supabase
-    const { error } = await supabase!.from("onboarding_data").insert({
-      workspace_id: workspaceId,
-      answers: data.answers as unknown as Record<string, unknown>,
-      scraped_website: data.scrapedWebsite as unknown as Record<string, unknown> | null,
-      uploaded_documents: data.uploadedDocuments as unknown as Record<string, unknown>[] | null,
-    });
+    const { error } = (await (supabase!.from("onboarding_data") as any) // Type assertion until Supabase types are generated
+      .insert({
+        workspace_id: workspaceId,
+        answers: data.answers as unknown as Record<string, unknown>,
+        scraped_website: data.scrapedWebsite as unknown as Record<string, unknown> | null,
+        uploaded_documents: data.uploadedDocuments as unknown as Record<string, unknown>[] | null,
+      })) as any;
 
     if (error) {
       throw new Error(`Failed to store onboarding data: ${error.message}`);
@@ -364,10 +369,11 @@ export async function storeGeneratedStrategy(
 ): Promise<void> {
   if (isSupabaseConfigured() && userId) {
     // Use Supabase
-    const { error } = await supabase!.from("generated_strategies").insert({
-      workspace_id: workspaceId,
-      strategy: strategy as unknown as Record<string, unknown>,
-    });
+    const { error } = (await (supabase!.from("generated_strategies") as any) // Type assertion until Supabase types are generated
+      .insert({
+        workspace_id: workspaceId,
+        strategy: strategy as unknown as Record<string, unknown>,
+      })) as any;
 
     if (error) {
       throw new Error(`Failed to store strategy: ${error.message}`);
