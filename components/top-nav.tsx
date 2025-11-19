@@ -1,7 +1,9 @@
 "use client";
 
-import { Search, Bell, User, Menu } from "lucide-react";
+import { Search, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { NotificationsDropdown } from "@/components/notifications-dropdown";
+import { UserProfileDropdown } from "@/components/user-profile-dropdown";
 import { cn } from "@/lib/utils";
 
 interface TopNavProps {
@@ -48,26 +50,8 @@ export function TopNav({ className, onMobileMenuClick }: TopNavProps) {
 
       {/* Actions */}
       <div className="flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="relative min-h-[44px] min-w-[44px]"
-          aria-label="Notifications (1 unread)"
-        >
-          <Bell className="h-5 w-5" />
-          <span
-            className="absolute right-1 top-1 h-2 w-2 rounded-full bg-destructive"
-            aria-hidden="true"
-          />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="min-h-[44px] min-w-[44px]"
-          aria-label="User profile"
-        >
-          <User className="h-5 w-5" />
-        </Button>
+        <NotificationsDropdown />
+        <UserProfileDropdown />
       </div>
     </header>
   );
