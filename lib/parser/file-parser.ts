@@ -1,9 +1,9 @@
 /**
  * File Parser Service
  * Extracts text content from uploaded documents (PDF, DOCX)
+ * Note: PDF parsing uses dynamic import to avoid bundling Node.js-only code
  */
 
-import pdf from "pdf-parse";
 import mammoth from "mammoth";
 
 export interface ParsedDocument {
@@ -72,6 +72,9 @@ async function parsePDF(
   fileName: string
 ): Promise<ParsedDocument> {
   try {
+    // Dynamic import for Node.js-only library
+    const pdfParse = await import("pdf-parse");
+    const pdf = pdfParse.default || pdfParse;
     const data = await pdf(Buffer.from(buffer));
 
     return {

@@ -9,6 +9,12 @@ import type { OnboardingData } from "@/types/onboarding";
 import type { GTMStrategy } from "@/types/ai";
 import { supabase, isSupabaseConfigured } from "./supabase";
 import * as localStorage from "../storage/workspace-storage";
+import {
+  WorkspaceCreateSchema,
+  WorkspaceUpdateSchema,
+  IdSchema,
+  UuidSchema,
+} from "./validators";
 
 export interface WorkspaceWithModules extends Workspace {
   modules: StrategyModule[];
@@ -26,14 +32,27 @@ export async function createWorkspace(
   userId?: string
 ): Promise<WorkspaceWithModules> {
   if (isSupabaseConfigured() && userId) {
+    // Validate inputs
+    const validated = WorkspaceCreateSchema.parse({
+      name,
+      companyName,
+      companyUrl: companyUrl || "",
+      userId,
+    });
+
     // Use Supabase
-    const { data, error } = await supabase!
+    const client = supabase;
+    if (!client) {
+      throw new Error("Supabase client not configured");
+    }
+
+    const { data, error } = await client
       .from("workspaces")
       .insert({
-        user_id: userId,
-        name,
-        company_name: companyName,
-        company_url: companyUrl,
+        user_id: validated.userId,
+        name: validated.name,
+        company_name: validated.companyName,
+        company_url: validated.companyUrl || null,
       })
       .select()
       .single();

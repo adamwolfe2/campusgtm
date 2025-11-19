@@ -29,11 +29,24 @@ export default function DashboardPage() {
   const router = useRouter();
   const { user } = useUser();
   const [workspaces, setWorkspaces] = useState<WorkspaceWithModules[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadWorkspaces = async () => {
-      const loadedWorkspaces = await getWorkspaces(user?.id);
-      setWorkspaces(loadedWorkspaces);
+      try {
+        setIsLoading(true);
+        setError(null);
+        const loadedWorkspaces = await getWorkspaces(user?.id);
+        setWorkspaces(loadedWorkspaces);
+      } catch (err) {
+        console.error("Failed to load workspaces:", err);
+        setError(
+          err instanceof Error ? err.message : "Failed to load workspaces"
+        );
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     loadWorkspaces();
@@ -64,8 +77,45 @@ export default function DashboardPage() {
           </Button>
         </div>
 
+        {/* Error State */}
+        {error && (
+          <Card className="border-destructive bg-destructive/10">
+            <CardContent className="pt-6">
+              <p className="text-destructive">
+                Error: {error}
+              </p>
+              <Button
+                variant="outline"
+                className="mt-4"
+                onClick={() => window.location.reload()}
+              >
+                Retry
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Loading State */}
+        {isLoading && !error && (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3].map((i) => (
+              <Card key={i} className="animate-pulse">
+                <CardHeader>
+                  <div className="h-12 w-12 rounded-lg bg-muted" />
+                  <div className="mt-4 h-6 w-3/4 rounded bg-muted" />
+                  <div className="mt-2 h-4 w-1/2 rounded bg-muted" />
+                </CardHeader>
+                <CardContent>
+                  <div className="h-4 w-full rounded bg-muted" />
+                  <div className="mt-2 h-4 w-2/3 rounded bg-muted" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+
         {/* Workspaces List */}
-        {hasWorkspaces ? (
+        {!isLoading && !error && hasWorkspaces ? (
           <div className="flex flex-col gap-4">
             <h2 className="text-xl font-semibold">Your Workspaces</h2>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
