@@ -8,19 +8,19 @@ import { z } from "zod";
 export const WorkspaceCreateSchema = z.object({
   name: z.string().min(1, "Workspace name is required").max(100),
   companyName: z.string().min(1, "Company name is required").max(200),
-  companyUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
-  userId: z.string().uuid("Invalid user ID"),
+  companyUrl: z.string().optional().nullable(), // Allow any string, empty, or null
+  userId: z.string().min(1, "User ID is required"), // Clerk IDs are not UUIDs
 });
 
 export const WorkspaceUpdateSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   companyName: z.string().min(1).max(200).optional(),
-  companyUrl: z.string().url().optional().or(z.literal("")),
+  companyUrl: z.string().optional().nullable(), // Allow any string, empty, or null
 });
 
 export const StrategyModuleSchema = z.object({
   id: z.string(),
-  workspaceId: z.string().uuid(),
+  workspaceId: z.string(), // Allow any string ID format
   type: z.enum([
     "ambassador_program",
     "content_calendar",
