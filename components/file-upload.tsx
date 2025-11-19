@@ -132,15 +132,20 @@ export function FileUpload({
   };
 
   // Notify parent when files are processed
+  const onFilesProcessedRef = React.useRef(onFilesProcessed);
+  React.useEffect(() => {
+    onFilesProcessedRef.current = onFilesProcessed;
+  }, [onFilesProcessed]);
+
   React.useEffect(() => {
     const successfulDocs = uploadedFiles
       .filter((uf) => uf.status === "success" && uf.parsedDocument)
       .map((uf) => uf.parsedDocument!);
 
-    if (successfulDocs.length > 0) {
-      onFilesProcessed?.(successfulDocs);
+    if (successfulDocs.length > 0 && onFilesProcessedRef.current) {
+      onFilesProcessedRef.current(successfulDocs);
     }
-  }, [uploadedFiles, onFilesProcessed]);
+  }, [uploadedFiles]); // Remove onFilesProcessed from deps to prevent infinite loop
 
   return (
     <div className={cn("flex flex-col gap-4", className)}>

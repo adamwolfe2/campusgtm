@@ -169,3 +169,11 @@ export function clearAIConfigsFromLocalStorage(): void {
 
   localStorage.removeItem("ai-provider-configs");
 }
+
+/**
+ * Gets AI config for server-side usage (always uses environment variables)
+ * Use this in Server Actions and API routes
+ */
+export function getServerAIConfig(): AIProviderConfig | null {
+  return getDefaultAIConfig();
+}

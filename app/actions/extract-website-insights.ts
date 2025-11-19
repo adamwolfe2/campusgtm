@@ -2,7 +2,7 @@
 
 import { generateText } from 'ai';
 import { createLanguageModel } from '@/lib/ai/provider-factory';
-import { getPreferredAIConfig } from '@/lib/ai/config';
+import { getServerAIConfig } from '@/lib/ai/config';
 import type { ScrapedWebsiteData } from '@/lib/scraper/web-scraper';
 
 export interface ExtractedInsights {
@@ -18,9 +18,9 @@ export async function extractWebsiteInsights(
     scrapedData: ScrapedWebsiteData
 ): Promise<{ success: boolean; insights?: ExtractedInsights; error?: string }> {
     try {
-        const aiConfig = getPreferredAIConfig();
+        const aiConfig = getServerAIConfig();
         if (!aiConfig) {
-            throw new Error('AI provider not configured');
+            throw new Error('AI provider not configured. Please add ANTHROPIC_API_KEY to .env.local');
         }
 
         const model = createLanguageModel(aiConfig);

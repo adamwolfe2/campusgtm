@@ -10,7 +10,7 @@ import type { StrategyModule, Block } from "@/types";
 import { getAnswerValue } from "@/types/onboarding";
 import { StrategyModuleType, BlockType } from "@/types";
 import { generateGTMStrategy } from "@/lib/ai/service";
-import { getPreferredAIConfig } from "@/lib/ai/config";
+import { getServerAIConfig } from "@/lib/ai/config";
 import {
   createWorkspace,
   addStrategyModule,
@@ -33,11 +33,11 @@ export async function generateCompleteStrategy(
   onboardingData: OnboardingData,
   userId?: string
 ): Promise<StrategyGenerationResult> {
-  // Get AI provider config
-  const aiConfig = getPreferredAIConfig();
+  // Get AI provider config (server-side, uses environment variables)
+  const aiConfig = getServerAIConfig();
   if (!aiConfig) {
     throw new Error(
-      "No AI provider configured. Please add an API key in Settings."
+      "No AI provider configured. Please add ANTHROPIC_API_KEY to your .env.local file."
     );
   }
 
