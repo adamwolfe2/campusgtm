@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import {
   Card,
@@ -22,16 +23,21 @@ import {
   Sparkles,
   Clock,
 } from "lucide-react";
-import { getWorkspaces, type WorkspaceWithModules } from "@/lib/storage/workspace-storage";
+import { getWorkspaces, type WorkspaceWithModules } from "@/lib/database/workspace-service";
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { user } = useUser();
   const [workspaces, setWorkspaces] = useState<WorkspaceWithModules[]>([]);
 
   useEffect(() => {
-    const loadedWorkspaces = getWorkspaces();
-    setWorkspaces(loadedWorkspaces);
-  }, []);
+    const loadWorkspaces = async () => {
+      const loadedWorkspaces = await getWorkspaces(user?.id);
+      setWorkspaces(loadedWorkspaces);
+    };
+
+    loadWorkspaces();
+  }, [user?.id]);
 
   const hasWorkspaces = workspaces.length > 0;
 

@@ -15,8 +15,11 @@ import {
   createWorkspace,
   addStrategyModule,
   updateWorkspace,
+  storeOnboardingData,
+  storeGeneratedStrategy,
+  getWorkspace,
   type WorkspaceWithModules,
-} from "@/lib/storage/workspace-storage";
+} from "@/lib/database/workspace-service";
 import {
   extractInsightsFromScrapedData,
   generateInsightExtractionPrompt,
@@ -33,7 +36,8 @@ export interface StrategyGenerationResult {
  * Main orchestrator - generates complete GTM strategy from onboarding data
  */
 export async function generateCompleteStrategy(
-  onboardingData: OnboardingData
+  onboardingData: OnboardingData,
+  userId?: string
 ): Promise<StrategyGenerationResult> {
   // Get AI provider config
   const aiConfig = getPreferredAIConfig();
@@ -95,24 +99,22 @@ export async function generateCompleteStrategy(
   const strategy = await generateGTMStrategy(request, aiConfig);
 
   // Create workspace
-  const workspace = createWorkspace(
+  const workspace = await createWorkspace(
     `${companyName} GTM Strategy`,
     companyName,
-    companyUrl
+    companyUrl,
+    userId
   );
 
   // Store onboarding data and strategy in workspace
-  updateWorkspace(workspace.id, {
-    onboardingData,
-    generatedStrategy: strategy,
-  });
+  await storeOnboardingData(workspace.id, onboardingData, userId);
+  await storeGeneratedStrategy(workspace.id, strategy, userId);
 
   // Convert strategy to modules and blocks
-  await createStrategyModules(workspace.id, strategy);
+  await createStrategyModules(workspace.id, strategy, userId);
 
   // Get updated workspace with modules
-  const { getWorkspace } = await import("@/lib/storage/workspace-storage");
-  const updatedWorkspace = getWorkspace(workspace.id);
+  const updatedWorkspace = await getWorkspace(workspace.id, userId);
 
   if (!updatedWorkspace) {
     throw new Error("Failed to retrieve created workspace");
@@ -129,7 +131,8 @@ export async function generateCompleteStrategy(
  */
 async function createStrategyModules(
   workspaceId: string,
-  strategy: GTMStrategy
+  strategy: GTMStrategy,
+  userId?: string
 ): Promise<void> {
   // 1. Summary Module
   const summaryModule: StrategyModule = {
@@ -153,7 +156,7 @@ async function createStrategyModules(
     updatedAt: new Date(),
   };
 
-  addStrategyModule(workspaceId, summaryModule);
+  await addStrategyModule(workspaceId, summaryModule, userId);
 
   // 2. Ambassador Program Module
   const ambassadorModule: StrategyModule = {
@@ -181,7 +184,7 @@ async function createStrategyModules(
     updatedAt: new Date(),
   };
 
-  addStrategyModule(workspaceId, ambassadorModule);
+  await addStrategyModule(workspaceId, ambassadorModule, userId);
 
   // 3. Content Calendar Module
   const contentModule: StrategyModule = {
@@ -201,7 +204,7 @@ async function createStrategyModules(
     updatedAt: new Date(),
   };
 
-  addStrategyModule(workspaceId, contentModule);
+  await addStrategyModule(workspaceId, contentModule, userId);
 
   // 4. Outreach Scripts Module
   const outreachModule: StrategyModule = {
@@ -218,7 +221,7 @@ async function createStrategyModules(
     updatedAt: new Date(),
   };
 
-  addStrategyModule(workspaceId, outreachModule);
+  await addStrategyModule(workspaceId, outreachModule, userId);
 
   // 5. Virality Tactics Module
   const viralityModule: StrategyModule = {
@@ -236,7 +239,7 @@ async function createStrategyModules(
     updatedAt: new Date(),
   };
 
-  addStrategyModule(workspaceId, viralityModule);
+  await addStrategyModule(workspaceId, viralityModule, userId);
 }
 
 /**

@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { motion } from "framer-motion";
-import { Sparkles, Users, TrendingUp, Zap } from "lucide-react";
+import { Sparkles, Users, TrendingUp, Zap, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function HomePage() {
   return (
@@ -44,32 +46,49 @@ export default function HomePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
+          className="flex items-center gap-4"
+        >
+          <Button size="lg" className="gap-2" asChild>
+            <Link href="/sign-up">
+              Get Started
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button size="lg" variant="outline" asChild>
+            <Link href="/sign-in">Sign In</Link>
+          </Button>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
           className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-3"
         >
           <FeatureCard
             icon={<Users className="h-6 w-6" />}
             title="Ambassador Programs"
             description="Design multi-tier student ambassador structures"
-            delay={0.6}
+            delay={0.7}
           />
           <FeatureCard
             icon={<TrendingUp className="h-6 w-6" />}
             title="GTM Strategy"
             description="AI-generated go-to-market plans in seconds"
-            delay={0.7}
+            delay={0.8}
           />
           <FeatureCard
             icon={<Zap className="h-6 w-6" />}
             title="Instant Execution"
             description="From strategy to action with one click"
-            delay={0.8}
+            delay={0.9}
           />
         </motion.div>
 
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.9 }}
+          transition={{ delay: 1.0 }}
           className="mt-8 text-sm text-muted-foreground"
         >
           Powered by Google Gemini AI

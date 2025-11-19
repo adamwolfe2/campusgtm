@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 import { motion } from "framer-motion";
 import { OnboardingFlow } from "@/components/onboarding/onboarding-flow";
 import type { OnboardingData } from "@/types/onboarding";
@@ -11,6 +12,7 @@ import { toast } from "sonner";
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const { user } = useUser();
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string>();
 
@@ -20,7 +22,7 @@ export default function OnboardingPage() {
 
     try {
       // Generate complete GTM strategy using AI
-      const result = await generateCompleteStrategy(data);
+      const result = await generateCompleteStrategy(data, user?.id);
 
       // Success! Redirect to workspace
       toast.success("Your GTM strategy has been generated!");

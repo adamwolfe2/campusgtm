@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import type { StrategyModule } from "@/types";
 import { StrategyModuleType } from "@/types";
@@ -12,6 +13,7 @@ import { cn } from "@/lib/utils";
 
 interface StrategyModuleViewProps {
   module: StrategyModule;
+  workspaceId?: string;
   className?: string;
   editable?: boolean;
 }
@@ -37,6 +39,7 @@ const MODULE_COLORS = {
  */
 export function StrategyModuleView({
   module,
+  workspaceId,
   className,
   editable = false,
 }: StrategyModuleViewProps) {
@@ -63,9 +66,11 @@ export function StrategyModuleView({
               </div>
               <CardTitle>{module.title}</CardTitle>
             </div>
-            {editable && (
-              <Button variant="ghost" size="icon">
-                <Edit3 className="h-4 w-4" />
+            {editable && workspaceId && (
+              <Button variant="ghost" size="icon" asChild>
+                <Link href={`/workspace/${workspaceId}/module/${module.id}`}>
+                  <Edit3 className="h-4 w-4" />
+                </Link>
               </Button>
             )}
           </div>
@@ -86,12 +91,14 @@ export function StrategyModuleView({
  */
 interface StrategyModulesGridProps {
   modules: StrategyModule[];
+  workspaceId?: string;
   className?: string;
   editable?: boolean;
 }
 
 export function StrategyModulesGrid({
   modules,
+  workspaceId,
   className,
   editable,
 }: StrategyModulesGridProps) {
@@ -116,7 +123,11 @@ export function StrategyModulesGrid({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: index * 0.1 }}
         >
-          <StrategyModuleView module={module} editable={editable} />
+          <StrategyModuleView
+            module={module}
+            workspaceId={workspaceId}
+            editable={editable}
+          />
         </motion.div>
       ))}
     </div>

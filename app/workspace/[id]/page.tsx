@@ -2,38 +2,45 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 import { motion } from "framer-motion";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { StrategyModulesGrid } from "@/components/strategy-module-view";
+import { ExportDialog } from "@/components/export-dialog";
 import { Button } from "@/components/ui/button";
 import {  ArrowLeft, Download, Share2, Edit3, Sparkles, Loader2 } from "lucide-react";
-import { getWorkspace, type WorkspaceWithModules } from "@/lib/storage/workspace-storage";
+import { getWorkspace, type WorkspaceWithModules } from "@/lib/database/workspace-service";
 import { toast } from "sonner";
 
 export default function WorkspacePage() {
   const params = useParams();
   const router = useRouter();
+  const { user } = useUser();
   const [workspace, setWorkspace] = useState<WorkspaceWithModules | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const id = params.id as string;
-    if (!id) {
-      toast.error("Invalid workspace ID");
-      router.push("/dashboard");
-      return;
-    }
+    const loadWorkspace = async () => {
+      const id = params.id as string;
+      if (!id) {
+        toast.error("Invalid workspace ID");
+        router.push("/dashboard");
+        return;
+      }
 
-    const loadedWorkspace = getWorkspace(id);
-    if (!loadedWorkspace) {
-      toast.error("Workspace not found");
-      router.push("/dashboard");
-      return;
-    }
+      const loadedWorkspace = await getWorkspace(id, user?.id);
+      if (!loadedWorkspace) {
+        toast.error("Workspace not found");
+        router.push("/dashboard");
+        return;
+      }
 
-    setWorkspace(loadedWorkspace);
-    setIsLoading(false);
-  }, [params.id, router]);
+      setWorkspace(loadedWorkspace);
+      setIsLoading(false);
+    };
+
+    loadWorkspace();
+  }, [params.id, router, user?.id]);
 
   if (isLoading) {
     return (
@@ -101,14 +108,7 @@ export default function WorkspacePage() {
                 <Share2 className="h-4 w-4" />
                 Share
               </Button>
-              <Button variant="outline" className="gap-2">
-                <Download className="h-4 w-4" />
-                Export
-              </Button>
-              <Button variant="outline" className="gap-2">
-                <Edit3 className="h-4 w-4" />
-                Edit
-              </Button>
+              <ExportDialog workspace={workspace} />
             </div>
           </div>
 
@@ -138,7 +138,8 @@ export default function WorkspacePage() {
         {/* Strategy Modules */}
         <StrategyModulesGrid
           modules={workspace.modules}
-          editable={false}
+          workspaceId={workspace.id}
+          editable={true}
         />
       </div>
     </DashboardLayout>
