@@ -3,7 +3,11 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
-import { DashboardLayout } from "@/components/dashboard-layout";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChatInput } from "@/components/chat-input";
+import { SuggestedPrompts, DEFAULT_PROMPTS } from "@/components/suggested-prompts";
+import { UserProfileDropdown } from "@/components/user-profile-dropdown";
+import { NotificationsDropdown } from "@/components/notifications-dropdown";
 import {
   Card,
   CardContent,
@@ -12,36 +16,36 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
 import {
-  Users,
-  Calendar,
-  MessageSquare,
-  FileText,
-  Plus,
-  ArrowRight,
   Sparkles,
   Clock,
+  FileText,
+  ArrowRight,
+  Loader2,
+  Plus,
+  Building2,
 } from "lucide-react";
 import { getWorkspaces, type WorkspaceWithModules } from "@/lib/database/workspace-service";
+import { glass, animations, gradients } from "@/lib/design-system";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 export default function DashboardPage() {
   const router = useRouter();
   const { user } = useUser();
   const [workspaces, setWorkspaces] = useState<WorkspaceWithModules[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [isChatLoading, setIsChatLoading] = useState(false);
 
   useEffect(() => {
     const loadWorkspaces = async () => {
       try {
         setIsLoading(true);
-        setError(null);
         const loadedWorkspaces = await getWorkspaces(user?.id);
         setWorkspaces(loadedWorkspaces);
       } catch (err) {
         console.error("Failed to load workspaces:", err);
-        setError(
+        toast.error(
           err instanceof Error ? err.message : "Failed to load workspaces"
         );
       } finally {
@@ -52,104 +56,145 @@ export default function DashboardPage() {
     loadWorkspaces();
   }, [user?.id]);
 
-  const hasWorkspaces = workspaces.length > 0;
+  const handleChatSubmit = async (message: string) => {
+    setIsChatLoading(true);
+    try {
+      // TODO: Implement chat API call
+      console.log("Chat message:", message);
+      toast.info("Chat functionality coming soon!");
+    } catch (error) {
+      toast.error("Failed to send message");
+    } finally {
+      setIsChatLoading(false);
+    }
+  };
 
   return (
-    <DashboardLayout>
-      <div className="flex flex-col gap-8">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              The War Room
-            </h1>
-            <p className="text-muted-foreground">
-              Your AI-powered GTM command center
-            </p>
+    <div className="min-h-screen w-full">
+      {/* Background gradient */}
+      <div className={cn("fixed inset-0 -z-10", gradients.subtle)} />
+
+      {/* Top Navigation - Floating */}
+      <motion.nav
+        {...animations.fadeInDown}
+        className="fixed left-0 right-0 top-0 z-50 flex items-center justify-between px-6 py-4"
+      >
+        {/* Logo */}
+        <div className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <Sparkles className="h-5 w-5" />
           </div>
-          <Button
-            size="lg"
-            className="gap-2"
-            onClick={() => router.push("/onboarding")}
-          >
-            <Plus className="h-4 w-4" />
-            New Strategy
-          </Button>
+          <span className="font-semibold">Campus GTM</span>
         </div>
 
-        {/* Error State */}
-        {error && (
-          <Card className="border-destructive bg-destructive/10">
-            <CardContent className="pt-6">
-              <p className="text-destructive">
-                Error: {error}
-              </p>
+        {/* Actions */}
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" onClick={() => router.push("/workspaces")}>
+            Workspaces
+          </Button>
+          <NotificationsDropdown />
+          <UserProfileDropdown />
+        </div>
+      </motion.nav>
+
+      {/* Main Content */}
+      <main className="flex min-h-screen flex-col items-center justify-start px-4 pb-24 pt-32">
+        {/* Hero Section */}
+        <motion.div
+          {...animations.fadeInUp}
+          className="mb-12 text-center"
+        >
+          <h1 className="mb-4 text-5xl font-bold tracking-tight md:text-6xl">
+            Your AI-Powered
+            <br />
+            <span className="bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent">
+              GTM Copilot
+            </span>
+          </h1>
+          <p className="text-lg text-muted-foreground">
+            Ask anything about go-to-market strategy, get instant answers
+          </p>
+        </motion.div>
+
+        {/* Main Chat Input */}
+        <ChatInput
+          onSubmit={handleChatSubmit}
+          isLoading={isChatLoading}
+          size="large"
+          showIcon={true}
+          className="mb-12"
+        />
+
+        {/* Suggested Prompts */}
+        <SuggestedPrompts
+          prompts={DEFAULT_PROMPTS}
+          onSelect={handleChatSubmit}
+          className="mb-16"
+        />
+
+        {/* Workspaces Section */}
+        {!isLoading && workspaces.length > 0 && (
+          <motion.div
+            {...animations.fadeInUp}
+            transition={{ delay: 0.3 }}
+            className="w-full max-w-6xl"
+          >
+            <div className="mb-6 flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold">Your Workspaces</h2>
+                <p className="text-sm text-muted-foreground">
+                  Continue working on your GTM strategies
+                </p>
+              </div>
               <Button
-                variant="outline"
-                className="mt-4"
-                onClick={() => window.location.reload()}
+                onClick={() => router.push("/onboarding")}
+                className="gap-2"
               >
-                Retry
+                <Plus className="h-4 w-4" />
+                New Strategy
               </Button>
-            </CardContent>
-          </Card>
-        )}
+            </div>
 
-        {/* Loading State */}
-        {isLoading && !error && (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3].map((i) => (
-              <Card key={i} className="animate-pulse">
-                <CardHeader>
-                  <div className="h-12 w-12 rounded-lg bg-muted" />
-                  <div className="mt-4 h-6 w-3/4 rounded bg-muted" />
-                  <div className="mt-2 h-4 w-1/2 rounded bg-muted" />
-                </CardHeader>
-                <CardContent>
-                  <div className="h-4 w-full rounded bg-muted" />
-                  <div className="mt-2 h-4 w-2/3 rounded bg-muted" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-
-        {/* Workspaces List */}
-        {!isLoading && !error && hasWorkspaces ? (
-          <div className="flex flex-col gap-4">
-            <h2 className="text-xl font-semibold">Your Workspaces</h2>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {workspaces.map((workspace, index) => (
+              {workspaces.slice(0, 6).map((workspace, index) => (
                 <motion.div
                   key={workspace.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
+                  {...animations.fadeInUp}
+                  transition={{ delay: 0.4 + index * 0.05 }}
                 >
                   <Card
-                    className="group cursor-pointer transition-all hover:border-primary hover:shadow-md"
+                    className={cn(
+                      "group cursor-pointer transition-all duration-300",
+                      glass.card,
+                      glass.hover
+                    )}
                     onClick={() => router.push(`/workspace/${workspace.id}`)}
                   >
                     <CardHeader>
                       <div className="flex items-start justify-between">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 text-primary">
                           <Sparkles className="h-6 w-6" />
                         </div>
                         <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1" />
                       </div>
-                      <CardTitle className="mt-4">{workspace.name}</CardTitle>
-                      <CardDescription>{workspace.companyName}</CardDescription>
+                      <CardTitle className="mt-4 line-clamp-1">
+                        {workspace.name}
+                      </CardTitle>
+                      <CardDescription className="flex items-center gap-1.5">
+                        <Building2 className="h-3.5 w-3.5" />
+                        {workspace.companyName}
+                      </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="flex flex-col gap-2 text-sm">
-                        <div className="flex items-center gap-2 text-muted-foreground">
+                      <div className="flex flex-col gap-2">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <FileText className="h-4 w-4" />
                           <span>{workspace.modules.length} modules</span>
                         </div>
-                        <div className="flex items-center gap-2 text-muted-foreground">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Clock className="h-4 w-4" />
                           <span>
-                            Updated {workspace.updatedAt.toLocaleDateString()}
+                            {workspace.updatedAt.toLocaleDateString()}
                           </span>
                         </div>
                       </div>
@@ -158,146 +203,61 @@ export default function DashboardPage() {
                 </motion.div>
               ))}
             </div>
-          </div>
-        ) : (
-          /* Getting Started - No Workspaces Yet */
-          <Card>
-            <CardHeader>
-              <CardTitle>Getting Started</CardTitle>
-              <CardDescription>
-                Complete these steps to set up your first GTM strategy
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-4">
-              <div className="flex items-center gap-4 rounded-lg border p-4">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                  1
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold">Complete Onboarding</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Tell us about your company and goals
-                  </p>
-                </div>
-                <Button variant="outline" asChild>
-                  <a href="/onboarding">Start</a>
-                </Button>
-              </div>
 
-              <div className="flex items-center gap-4 rounded-lg border p-4 opacity-50">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-muted-foreground">
-                  2
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold">Generate Your Strategy</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Let AI create your custom GTM plan
-                  </p>
-                </div>
-                <Button variant="outline" disabled>
-                  Locked
-                </Button>
-              </div>
-
-              <div className="flex items-center gap-4 rounded-lg border p-4 opacity-50">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-muted-foreground">
-                  3
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold">Execute & Monitor</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Track progress and refine your approach
-                  </p>
-                </div>
-                <Button variant="outline" disabled>
-                  Locked
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Strategy Module Overview */}
-        {hasWorkspaces && (
-          <div className="flex flex-col gap-4">
-            <h2 className="text-xl font-semibold">Strategy Modules</h2>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {strategyModules.map((module, index) => (
-                <motion.div
-                  key={module.title}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
+            {workspaces.length > 6 && (
+              <div className="mt-6 text-center">
+                <Button
+                  variant="outline"
+                  onClick={() => router.push("/workspaces")}
+                  className={glass.card}
                 >
-                  <Card className="group cursor-pointer transition-all hover:border-primary hover:shadow-md">
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <div
-                          className={`flex h-10 w-10 items-center justify-center rounded-lg ${module.color} text-white`}
-                        >
-                          <module.icon className="h-5 w-5" />
-                        </div>
-                        <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1" />
-                      </div>
-                      <CardTitle className="mt-4">{module.title}</CardTitle>
-                      <CardDescription>{module.description}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground">
-                        {calculateModuleCount(workspaces, module.type)}
-                      </p>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-          </div>
+                  View All Workspaces ({workspaces.length})
+                </Button>
+              </div>
+            )}
+          </motion.div>
         )}
-      </div>
-    </DashboardLayout>
+
+        {/* Loading State */}
+        {isLoading && (
+          <motion.div
+            {...animations.fadeInUp}
+            className="flex items-center justify-center py-12"
+          >
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </motion.div>
+        )}
+
+        {/* Empty State - No Workspaces */}
+        {!isLoading && workspaces.length === 0 && (
+          <motion.div
+            {...animations.fadeInUp}
+            transition={{ delay: 0.3 }}
+            className="w-full max-w-md"
+          >
+            <Card className={cn("border-dashed", glass.card)}>
+              <CardHeader className="text-center">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                  <FileText className="h-8 w-8 text-primary" />
+                </div>
+                <CardTitle>Start Your First Strategy</CardTitle>
+                <CardDescription>
+                  Create a workspace and let AI build your GTM plan
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex justify-center">
+                <Button
+                  onClick={() => router.push("/onboarding")}
+                  className="gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Create Workspace
+                </Button>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+      </main>
+    </div>
   );
-}
-
-const strategyModules = [
-  {
-    title: "Ambassador Playbook",
-    description: "Design your 3-tier student ambassador program",
-    icon: Users,
-    color: "bg-blue-500",
-    type: "ambassador_program",
-  },
-  {
-    title: "Content Calendar",
-    description: "4-week content strategy with AI-generated posts",
-    icon: Calendar,
-    color: "bg-green-500",
-    type: "content_calendar",
-  },
-  {
-    title: "Outreach Scripts",
-    description: "Personalized outreach templates for your ICP",
-    icon: MessageSquare,
-    color: "bg-purple-500",
-    type: "outreach_scripts",
-  },
-  {
-    title: "ICP Definition",
-    description: "Define your Ideal Customer Profile",
-    icon: FileText,
-    color: "bg-orange-500",
-    type: "icp_definition",
-  },
-] as const;
-
-function calculateModuleCount(
-  workspaces: WorkspaceWithModules[],
-  moduleType: string
-): string {
-  const count = workspaces.reduce((acc, workspace) => {
-    return (
-      acc + workspace.modules.filter((m) => m.type === moduleType).length
-    );
-  }, 0);
-
-  return `${count} ${moduleType.replace("_", " ")}${count !== 1 ? "s" : ""}`;
 }

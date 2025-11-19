@@ -4,6 +4,8 @@ import * as React from "react";
 import { motion } from "framer-motion";
 import { Sidebar } from "@/components/sidebar";
 import { TopNav } from "@/components/top-nav";
+import { FloatingChatBar } from "@/components/floating-chat-bar";
+import { JournalModal } from "@/components/journal-modal";
 import { pageVariants } from "@/lib/animation-variants";
 
 interface DashboardLayoutProps {
@@ -31,6 +33,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           {children}
         </motion.main>
       </div>
+
+      {/* Floating Components */}
+      <FloatingChatBar />
+      <JournalModal />
     </div>
   );
 }
