@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 import { OnboardingFlow } from "@/components/onboarding/onboarding-flow";
 import type { OnboardingData } from "@/types/onboarding";
 import { Sparkles, AlertCircle } from "lucide-react";
-import { generateCompleteStrategy } from "@/lib/generation/strategy-orchestrator";
+import { generateStrategyAction } from "@/app/actions/generate-strategy";
 import { toast } from "sonner";
 
 export default function OnboardingPage() {
@@ -21,8 +21,8 @@ export default function OnboardingPage() {
     setError(undefined);
 
     try {
-      // Generate complete GTM strategy using AI
-      const result = await generateCompleteStrategy(data, user?.id);
+      // Generate complete GTM strategy using AI (via Server Action)
+      const result = await generateStrategyAction(data, user?.id);
 
       // Success! Redirect to workspace
       toast.success("Your GTM strategy has been generated!");
