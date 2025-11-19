@@ -61,7 +61,7 @@ export function SlashCommandMenu({
 
   // Scroll selected item into view
   React.useEffect(() => {
-    const selectedElement = menuRef.current?.children[selectedIndex] as HTMLElement;
+    const selectedElement = menuRef.current?.querySelectorAll("button")[selectedIndex] as HTMLElement | undefined;
     if (selectedElement) {
       selectedElement.scrollIntoView({
         block: "nearest",
