@@ -121,7 +121,9 @@ export default function DashboardPage() {
                   Tell us about your company and goals
                 </p>
               </div>
-              <Button variant="outline">Start</Button>
+              <Button variant="outline" asChild>
+                <a href="/onboarding">Start</a>
+              </Button>
             </div>
 
             <div className="flex items-center gap-4 rounded-lg border p-4 opacity-50">
