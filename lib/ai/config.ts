@@ -18,6 +18,14 @@ import {
 export function loadAIConfigsFromEnv(): AIProviderConfig[] {
   const configs: AIProviderConfig[] = [];
 
+  // Debug: Log all env vars to see what's available
+  console.log('[AI Config] Environment check:', {
+    hasAnthropicKey: !!process.env.ANTHROPIC_API_KEY,
+    hasGeminiKey: !!(process.env.GOOGLE_GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY),
+    hasOpenAIKey: !!process.env.OPENAI_API_KEY,
+    anthropicKeyPrefix: process.env.ANTHROPIC_API_KEY?.substring(0, 10),
+  });
+
   // Google Gemini (check both variable names)
   const geminiKey = process.env.GOOGLE_GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
   if (geminiKey) {
@@ -32,12 +40,15 @@ export function loadAIConfigsFromEnv(): AIProviderConfig[] {
   // Anthropic Claude
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
   if (anthropicKey) {
+    console.log('[AI Config] Anthropic Claude configured successfully');
     configs.push({
       provider: Providers.ANTHROPIC,
       apiKey: anthropicKey,
       model: AnthropicModel.CLAUDE_SONNET_4,
       enabled: true,
     });
+  } else {
+    console.error('[AI Config] ANTHROPIC_API_KEY not found in environment!');
   }
 
   // OpenAI
