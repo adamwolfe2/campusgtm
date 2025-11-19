@@ -8,7 +8,7 @@ import { DashboardLayout } from "@/components/dashboard-layout";
 import { StrategyModulesGrid } from "@/components/strategy-module-view";
 import { ExportDialog } from "@/components/export-dialog";
 import { Button } from "@/components/ui/button";
-import {  ArrowLeft, Download, Share2, Edit3, Sparkles, Loader2 } from "lucide-react";
+import { ArrowLeft, Share2, Sparkles, Loader2 } from "lucide-react";
 import { getWorkspace, type WorkspaceWithModules } from "@/lib/database/workspace-service";
 import { toast } from "sonner";
 

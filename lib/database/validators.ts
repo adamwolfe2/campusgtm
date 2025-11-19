@@ -43,7 +43,7 @@ export const StrategyModuleSchema = z.object({
         "ai_block",
       ]),
       content: z.string(),
-      metadata: z.record(z.unknown()).optional(),
+      metadata: z.record(z.string(), z.unknown()).optional(),
       createdAt: z.date(),
       updatedAt: z.date(),
     })
@@ -64,7 +64,7 @@ export const BlockSchema = z.object({
     "ai_block",
   ]),
   content: z.string().max(50000), // 50KB limit
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const IdSchema = z.string().min(1, "ID is required");

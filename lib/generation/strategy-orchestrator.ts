@@ -5,7 +5,7 @@
  */
 
 import type { OnboardingData } from "@/types/onboarding";
-import type { GTMStrategy, GTMStrategyRequest, AIProviderConfig } from "@/types/ai";
+import type { GTMStrategy, GTMStrategyRequest } from "@/types/ai";
 import type { StrategyModule, Block } from "@/types";
 import { getAnswerValue } from "@/types/onboarding";
 import { StrategyModuleType, BlockType } from "@/types";
@@ -14,17 +14,11 @@ import { getPreferredAIConfig } from "@/lib/ai/config";
 import {
   createWorkspace,
   addStrategyModule,
-  updateWorkspace,
   storeOnboardingData,
   storeGeneratedStrategy,
   getWorkspace,
   type WorkspaceWithModules,
 } from "@/lib/database/workspace-service";
-import {
-  extractInsightsFromScrapedData,
-  generateInsightExtractionPrompt,
-} from "@/lib/scraper/web-scraper";
-import { generateDocumentSummaryPrompt } from "@/lib/parser/file-parser";
 
 export interface StrategyGenerationResult {
   workspace: WorkspaceWithModules;
@@ -55,33 +49,16 @@ export async function generateCompleteStrategy(
   const goals = getAnswerValue(onboardingData, "goals") as string[];
   const competitorsRaw = getAnswerValue(onboardingData, "competitors") as string | undefined;
   const budget = getAnswerValue(onboardingData, "budget") as string | undefined;
-  const uniqueValue = getAnswerValue(onboardingData, "unique_value") as string;
 
   // Parse competitors (one per line)
   const competitors = competitorsRaw
     ? competitorsRaw.split("\n").filter((c) => c.trim())
     : [];
 
-  // Build context from scraped website
-  let websiteContext = "";
-  if (onboardingData.scrapedWebsite) {
-    websiteContext = extractInsightsFromScrapedData(
-      onboardingData.scrapedWebsite
-    );
-  }
 
-  // Build context from uploaded documents
-  let documentContext = "";
-  if (onboardingData.uploadedDocuments && onboardingData.uploadedDocuments.length > 0) {
-    documentContext = generateDocumentSummaryPrompt(
-      onboardingData.uploadedDocuments
-    );
-  }
 
-  // Combine all context
-  const additionalContext = [websiteContext, documentContext, uniqueValue]
-    .filter(Boolean)
-    .join("\n\n");
+
+
 
   // Build GTM strategy request
   const request: GTMStrategyRequest = {
@@ -172,7 +149,7 @@ async function createStrategyModules(
         createTextBlock(
           `Compensation: ${role.compensation.type} - ${role.compensation.details}`
         ),
-        createHeadingBlock("Responsibilities", 4),
+        createHeadingBlock("Responsibilities", 3),
         ...role.responsibilities.map((r) => createChecklistBlock(r, false)),
       ]),
       createHeadingBlock("Launch Tasks", 2),
@@ -232,7 +209,7 @@ async function createStrategyModules(
     blocks: strategy.viralityTactics.flatMap((tactic) => [
       createHeadingBlock(tactic.tactic, 3),
       createTextBlock(tactic.description),
-      createHeadingBlock("Implementation", 4),
+      createHeadingBlock("Implementation", 3),
       createTextBlock(tactic.implementation),
     ]),
     createdAt: new Date(),

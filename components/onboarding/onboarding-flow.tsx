@@ -5,14 +5,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ArrowLeft, Check, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { FileUpload } from "@/components/file-upload";
 import { toast } from "sonner";
 import type {
   OnboardingQuestion,
   OnboardingData,
   OnboardingAnswer,
-  QuestionType,
 } from "@/types/onboarding";
 import {
   DEFAULT_ONBOARDING_QUESTIONS,
@@ -22,6 +20,7 @@ import {
 } from "@/types/onboarding";
 import { scrapeWebsite, isValidUrl } from "@/lib/scraper/web-scraper";
 import type { ParsedDocument } from "@/lib/parser/file-parser";
+import { extractWebsiteInsights, type ExtractedInsights } from "@/app/actions/extract-website-insights";
 import { cn } from "@/lib/utils";
 
 interface OnboardingFlowProps {
@@ -44,11 +43,23 @@ export function OnboardingFlow({
 
   const [currentValue, setCurrentValue] = React.useState<string | string[]>("");
   const [isProcessing, setIsProcessing] = React.useState(false);
+  const [isExtracting, setIsExtracting] = React.useState(false);
+  const [extractedInsights, setExtractedInsights] = React.useState<ExtractedInsights | null>(null);
   const [error, setError] = React.useState<string>();
 
   const currentQuestion = questions[data.currentStep];
   const progress = calculateProgress(data, questions.length);
   const isLastQuestion = data.currentStep === questions.length - 1;
+
+  // Load existing answer for current question (for auto-filled or previously answered questions)
+  React.useEffect(() => {
+    const existingAnswer = data.answers.find(
+      (a) => a.questionId === currentQuestion?.id
+    );
+    if (existingAnswer && !currentValue) {
+      setCurrentValue(existingAnswer.value);
+    }
+  }, [currentQuestion?.id, data.answers, currentValue]);
 
   // Handle answer submission
   const handleNext = async () => {
@@ -67,26 +78,63 @@ export function OnboardingFlow({
     setIsProcessing(true);
 
     try {
-      // Special handling for website URL - trigger scraper
+      // Special handling for website URL - trigger scraper and AI extraction
       if (
         currentQuestion.type === QType.URL &&
         currentValue &&
         typeof currentValue === "string"
       ) {
         if (isValidUrl(currentValue)) {
+          setIsExtracting(true);
           try {
+            // Step 1: Scrape the website
             const scrapedData = await scrapeWebsite(currentValue);
             setData((prev) => ({
               ...prev,
               scrapedWebsite: scrapedData,
             }));
-            toast.success("Website analyzed successfully!");
+
+            // Step 2: Extract insights with AI
+            const { success, insights, error: extractError } = await extractWebsiteInsights(scrapedData);
+
+            if (success && insights) {
+              setExtractedInsights(insights);
+
+              // Step 3: Auto-fill answers
+              const autoFilledAnswers: OnboardingAnswer[] = [
+                { questionId: 'company_name', value: insights.companyName, answeredAt: new Date() },
+                { questionId: 'industry', value: insights.industry, answeredAt: new Date() },
+                { questionId: 'target_audience', value: insights.targetAudience, answeredAt: new Date() },
+                { questionId: 'unique_value', value: insights.valueProposition, answeredAt: new Date() },
+              ];
+
+              // Add competitors if available
+              if (insights.competitors && insights.competitors.length > 0) {
+                autoFilledAnswers.push({
+                  questionId: 'competitors',
+                  value: insights.competitors.join('\n'),
+                  answeredAt: new Date(),
+                });
+              }
+
+              setData((prev) => ({
+                ...prev,
+                answers: [...prev.answers, ...autoFilledAnswers],
+              }));
+
+              toast.success('✨ Auto-filled your company info from website!');
+            } else {
+              toast.warning('Website scraped, but AI extraction failed. Please fill manually.');
+              console.error('AI extraction error:', extractError);
+            }
           } catch (error) {
             toast.error(
               error instanceof Error
                 ? error.message
                 : "Failed to analyze website"
             );
+          } finally {
+            setIsExtracting(false);
           }
         }
       }
@@ -253,6 +301,23 @@ export function OnboardingFlow({
               </p>
             )}
           </div>
+
+          {/* AI Extraction Loading State */}
+          {isExtracting && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 flex flex-col items-center gap-4 rounded-lg border border-primary/20 bg-primary/5 p-6"
+            >
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <div className="text-center">
+                <p className="font-medium">Analyzing your website...</p>
+                <p className="text-sm text-muted-foreground">
+                  Extracting brand voice, target audience, and key insights
+                </p>
+              </div>
+            </motion.div>
+          )}
 
           {/* Input based on question type */}
           <div className="flex-1">

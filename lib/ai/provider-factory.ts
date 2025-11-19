@@ -24,7 +24,6 @@ export function createLanguageModel(config: AIProviderConfig): LanguageModel {
     case Providers.OPENAI: {
       const openai = createOpenAI({
         apiKey,
-        compatibility: "strict",
       });
       return openai(model as AIModel);
     }

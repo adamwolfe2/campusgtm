@@ -37,6 +37,7 @@ export const OpenAIModel = {
 export type OpenAIModel = (typeof OpenAIModel)[keyof typeof OpenAIModel];
 
 export const AnthropicModel = {
+  CLAUDE_SONNET_4: "claude-sonnet-4-20250514",
   CLAUDE_3_5_SONNET: "claude-3-5-sonnet-20241022",
   CLAUDE_3_OPUS: "claude-3-opus-20240229",
   CLAUDE_3_SONNET: "claude-3-sonnet-20240229",
@@ -47,8 +48,8 @@ export type AnthropicModel =
   (typeof AnthropicModel)[keyof typeof AnthropicModel];
 
 export const GoogleModel = {
-  GEMINI_15_PRO: "gemini-1.5-pro-latest",
-  GEMINI_15_FLASH: "gemini-1.5-flash-latest",
+  GEMINI_15_PRO: "gemini-1.5-pro",
+  GEMINI_15_FLASH: "gemini-1.5-flash",
   GEMINI_PRO: "gemini-pro",
 } as const;
 

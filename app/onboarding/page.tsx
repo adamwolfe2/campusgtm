@@ -64,7 +64,26 @@ export default function OnboardingPage() {
 
         {/* Onboarding Flow */}
         <div className="rounded-2xl border bg-card p-8 shadow-lg sm:p-12">
-          <OnboardingFlow onComplete={handleComplete} />
+          {isGenerating ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="flex flex-col items-center gap-4"
+              >
+                <div className="relative">
+                  <div className="h-16 w-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+                  <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-6 w-6 text-primary" />
+                </div>
+                <h2 className="text-2xl font-bold">Generating Strategy</h2>
+                <p className="text-muted-foreground max-w-md">
+                  Our AI is analyzing your inputs and crafting a personalized Campus GTM strategy. This usually takes about 30-60 seconds.
+                </p>
+              </motion.div>
+            </div>
+          ) : (
+            <OnboardingFlow onComplete={handleComplete} />
+          )}
         </div>
 
         {/* Error Message */}

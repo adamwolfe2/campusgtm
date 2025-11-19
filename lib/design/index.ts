@@ -6,7 +6,6 @@
 // Export all design tokens
 export * from './colors';
 export * from './constants';
-export * from './animation-variants';
 export * from './use-reduced-motion';
 
 // Re-export commonly used utilities

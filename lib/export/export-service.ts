@@ -256,6 +256,16 @@ function addBlockToPDF(
       currentY += quoteLines.length * 5 + 5;
       break;
 
+    case BlockType.IMAGE:
+      // Placeholder for image support in PDF
+      // In a real implementation, we'd need to fetch the image data and use pdf.addImage()
+      pdf.setFontSize(8);
+      pdf.setTextColor(150);
+      pdf.text(`[Image: ${block.content}]`, x, currentY);
+      pdf.setTextColor(0);
+      currentY += 10;
+      break;
+
     case BlockType.TEXT:
     default:
       pdf.setFontSize(10);

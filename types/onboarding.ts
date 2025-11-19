@@ -50,21 +50,21 @@ export interface OnboardingData {
 
 export const DEFAULT_ONBOARDING_QUESTIONS: OnboardingQuestion[] = [
   {
-    id: "company_name",
-    type: QuestionType.TEXT,
-    question: "Let's start with the basics. What's your company name?",
-    description: "The official name of your company or product",
-    placeholder: "e.g., Acme Inc.",
+    id: "company_website",
+    type: QuestionType.URL,
+    question: "Which website do you want to track?",
+    description:
+      "We'll use this to track your brand visibility, create content, and analyze your site",
+    placeholder: "modern-amenities.com",
     required: true,
   },
   {
-    id: "company_website",
-    type: QuestionType.URL,
-    question: "What's your company website?",
-    description:
-      "We'll analyze your website to understand your product and audience",
-    placeholder: "e.g., https://acme.com",
-    required: false,
+    id: "company_name",
+    type: QuestionType.TEXT,
+    question: "What's your company name?",
+    description: "The official name of your company or product",
+    placeholder: "e.g., Acme Inc.",
+    required: true,
   },
   {
     id: "file_uploads",

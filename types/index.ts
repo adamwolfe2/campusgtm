@@ -12,6 +12,7 @@ export const BlockType = {
   CHECKLIST: "checklist",
   QUOTE: "quote",
   AI_BLOCK: "ai_block",
+  IMAGE: "image",
 } as const;
 
 export type BlockType = (typeof BlockType)[keyof typeof BlockType];

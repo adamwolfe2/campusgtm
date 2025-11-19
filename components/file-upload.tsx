@@ -6,7 +6,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Upload,
   FileText,
-  File,
   X,
   CheckCircle2,
   AlertCircle,
@@ -99,13 +98,13 @@ export function FileUpload({
             prev.map((uf) =>
               uf.file === file
                 ? {
-                    ...uf,
-                    status: "error",
-                    error:
-                      error instanceof Error
-                        ? error.message
-                        : "Failed to parse file",
-                  }
+                  ...uf,
+                  status: "error",
+                  error:
+                    error instanceof Error
+                      ? error.message
+                      : "Failed to parse file",
+                }
                 : uf
             )
           );

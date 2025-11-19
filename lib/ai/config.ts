@@ -18,8 +18,8 @@ import {
 export function loadAIConfigsFromEnv(): AIProviderConfig[] {
   const configs: AIProviderConfig[] = [];
 
-  // Google Gemini
-  const geminiKey = process.env.GOOGLE_GEMINI_API_KEY;
+  // Google Gemini (check both variable names)
+  const geminiKey = process.env.GOOGLE_GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
   if (geminiKey) {
     configs.push({
       provider: Providers.GOOGLE,
@@ -35,7 +35,7 @@ export function loadAIConfigsFromEnv(): AIProviderConfig[] {
     configs.push({
       provider: Providers.ANTHROPIC,
       apiKey: anthropicKey,
-      model: AnthropicModel.CLAUDE_3_5_SONNET,
+      model: AnthropicModel.CLAUDE_SONNET_4,
       enabled: true,
     });
   }
@@ -56,7 +56,7 @@ export function loadAIConfigsFromEnv(): AIProviderConfig[] {
 
 /**
  * Gets the default AI provider configuration
- * Priority: Google Gemini > Anthropic > OpenAI
+ * Priority: Anthropic Claude > Google Gemini > OpenAI
  */
 export function getDefaultAIConfig(): AIProviderConfig | null {
   const configs = loadAIConfigsFromEnv();
@@ -65,16 +65,16 @@ export function getDefaultAIConfig(): AIProviderConfig | null {
     return null;
   }
 
-  // Prioritize Google Gemini if available (recommended)
-  const gemini = configs.find((c) => c.provider === Providers.GOOGLE);
-  if (gemini) {
-    return gemini;
-  }
-
-  // Fallback to Anthropic
+  // Prioritize Anthropic Claude (recommended)
   const anthropic = configs.find((c) => c.provider === Providers.ANTHROPIC);
   if (anthropic) {
     return anthropic;
+  }
+
+  // Fallback to Google Gemini
+  const gemini = configs.find((c) => c.provider === Providers.GOOGLE);
+  if (gemini) {
+    return gemini;
   }
 
   // Fallback to OpenAI
@@ -129,7 +129,12 @@ export function getPreferredAIConfig(): AIProviderConfig | null {
   // Try localStorage first (user settings)
   const localConfigs = loadAIConfigsFromLocalStorage();
   if (localConfigs.length > 0) {
-    // Prioritize Google Gemini
+    // Prioritize Anthropic Claude
+    const anthropic = localConfigs.find((c) => c.provider === Providers.ANTHROPIC);
+    if (anthropic) {
+      return anthropic;
+    }
+    // Fallback to Google Gemini
     const gemini = localConfigs.find((c) => c.provider === Providers.GOOGLE);
     if (gemini) {
       return gemini;

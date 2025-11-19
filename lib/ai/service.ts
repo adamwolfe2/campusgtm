@@ -11,6 +11,7 @@ import type {
   AIProviderConfig,
   GTMStrategyRequest,
   GTMStrategy,
+  AIModel,
 } from "@/types/ai";
 import { GTMStrategySchema } from "@/types/ai";
 import {
@@ -62,13 +63,12 @@ export async function generateAIText(
       model,
       messages,
       temperature: request.temperature ?? 0.7,
-      maxTokens: request.maxTokens ?? 2000,
     });
 
     return {
       content: result.text,
       provider: providerConfig.provider,
-      model: providerConfig.model,
+      model: providerConfig.model as AIModel,
       tokensUsed: result.usage?.totalTokens,
       finishReason: result.finishReason,
     };
@@ -121,7 +121,6 @@ export async function streamAIText(
       model,
       messages,
       temperature: request.temperature ?? 0.7,
-      maxTokens: request.maxTokens ?? 2000,
     });
 
     return result;

@@ -74,7 +74,7 @@ async function parsePDF(
   try {
     // Dynamic import for Node.js-only library
     const pdfParse = await import("pdf-parse");
-    const pdf = pdfParse.default || pdfParse;
+    const pdf = (pdfParse as any).default || pdfParse;
     const data = await pdf(Buffer.from(buffer));
 
     return {

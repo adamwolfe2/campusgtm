@@ -53,7 +53,7 @@ export default function SettingsPage() {
           transition={{ duration: 0.3 }}
         >
           <AIProviderSettings
-            onSave={(configs) => {
+            onSave={() => {
               // AI provider configurations are saved to localStorage
               // by the AIProviderSettings component
             }}

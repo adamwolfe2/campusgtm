@@ -13,6 +13,9 @@ import { ReactRenderer } from "@tiptap/react";
 import tippy, { Instance as TippyInstance } from "tippy.js";
 import { SlashCommandMenu, createDefaultSlashCommands, type SlashCommand } from "./slash-command-menu";
 import { cn } from "@/lib/utils";
+import { AIInputDialog } from "./ai-input-dialog";
+import { generateContentAction } from "@/app/actions/generate-content";
+import { toast } from "sonner";
 
 interface DocumentEditorProps {
   content?: string;
@@ -21,6 +24,11 @@ interface DocumentEditorProps {
   editable?: boolean;
   className?: string;
 }
+
+import Image from "@tiptap/extension-image";
+import { uploadImage } from "@/lib/storage/image-service";
+
+// ... imports
 
 export function DocumentEditor({
   content = "",
@@ -58,6 +66,11 @@ export function DocumentEditor({
         },
       }),
       Underline,
+      Image.configure({
+        HTMLAttributes: {
+          class: "rounded-lg border shadow-sm max-w-full",
+        },
+      }),
       SlashCommandExtension,
     ],
     content,
@@ -76,8 +89,52 @@ export function DocumentEditor({
           "prose-li:my-1",
           "prose-blockquote:border-l-4 prose-blockquote:border-muted prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:my-4",
           "prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm",
-          "prose-pre:bg-muted prose-pre:rounded-md prose-pre:p-4"
+          "prose-pre:bg-muted prose-pre:rounded-md prose-pre:p-4",
+          "prose-img:rounded-lg prose-img:shadow-sm prose-img:my-6"
         ),
+      },
+      handleDrop: (view, event, _slice, moved) => {
+        if (!moved && event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0]) {
+          const file = event.dataTransfer.files[0];
+          if (file.type.startsWith("image/")) {
+            event.preventDefault();
+
+            const coordinates = view.posAtCoords({ left: event.clientX, top: event.clientY });
+
+            toast.promise(uploadImage(file), {
+              loading: "Uploading image...",
+              success: (url) => {
+                if (coordinates) {
+                  view.dispatch(view.state.tr.insert(coordinates.pos, view.state.schema.nodes.image.create({ src: url })));
+                }
+                return "Image uploaded successfully";
+              },
+              error: "Failed to upload image",
+            });
+            return true;
+          }
+        }
+        return false;
+      },
+      handlePaste: (view, event) => {
+        if (event.clipboardData && event.clipboardData.files && event.clipboardData.files[0]) {
+          const file = event.clipboardData.files[0];
+          if (file.type.startsWith("image/")) {
+            event.preventDefault();
+
+            toast.promise(uploadImage(file), {
+              loading: "Uploading image...",
+              success: (url) => {
+                const selection = view.state.selection;
+                view.dispatch(view.state.tr.insert(selection.from, view.state.schema.nodes.image.create({ src: url })));
+                return "Image uploaded successfully";
+              },
+              error: "Failed to upload image",
+            });
+            return true;
+          }
+        }
+        return false;
       },
     },
     onUpdate: ({ editor }) => {
@@ -85,15 +142,101 @@ export function DocumentEditor({
     },
   });
 
+  const [isAIInputOpen, setIsAIInputOpen] = React.useState(false);
+  const [aiInputPosition, setAiInputPosition] = React.useState<{ top: number; left: number } | undefined>(undefined);
+
+  const openAIInput = React.useCallback(() => {
+    const { view } = editor!;
+    const { from } = view.state.selection;
+    const coords = view.coordsAtPos(from);
+
+    // Calculate position relative to viewport
+    setAiInputPosition({
+      top: coords.top + 24, // Below the cursor
+      left: coords.left,
+    });
+    setIsAIInputOpen(true);
+  }, [editor]);
+
+  const handleAIGenerate = async (prompt: string) => {
+    if (!editor) return;
+
+    // Insert a loading placeholder
+    const selection = editor.state.selection;
+
+    editor.chain().focus().insertContent({
+      type: 'paragraph',
+      content: [{ type: 'text', text: '✨ Generating content...' }]
+    }).run();
+
+    try {
+      const result = await generateContentAction(prompt);
+
+      // Remove placeholder (this is a bit naive, assuming selection hasn't moved much, but works for v1)
+      // A better approach would be to use a decoration or a unique node ID
+      editor.commands.deleteRange({ from: selection.from, to: selection.from + 24 });
+
+      if (result.success && result.content) {
+        editor.chain().focus().insertContent(result.content).run();
+        toast.success("Content generated successfully");
+      } else {
+        throw new Error(result.error || "Unknown error");
+      }
+
+    } catch (error) {
+      console.error("AI Generation failed", error);
+      editor.chain().focus().insertContent("❌ AI Generation failed. Please try again.").run();
+      toast.error("Failed to generate content");
+    }
+  };
+
+  // Update slash commands to use the openAIInput callback
+  React.useEffect(() => {
+    if (editor) {
+      // We need to override the default slash commands to inject the openAIInput handler
+      // This is a bit tricky with the current setup since createDefaultSlashCommands is static
+      // We might need to refactor how commands are passed or use a context
+    }
+  }, [editor, openAIInput]);
+
+  // Handle custom image upload event
+  React.useEffect(() => {
+    const handleImageUpload = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const file = customEvent.detail?.file;
+      if (file && editor) {
+        toast.promise(uploadImage(file), {
+          loading: "Uploading image...",
+          success: (url) => {
+            editor.chain().focus().setImage({ src: url }).run();
+            return "Image uploaded successfully";
+          },
+          error: "Failed to upload image",
+        });
+      }
+    };
+
+    window.addEventListener("editor:upload-image", handleImageUpload);
+    return () => {
+      window.removeEventListener("editor:upload-image", handleImageUpload);
+    };
+  }, [editor]);
+
   return (
     <div
       className={cn(
-        "w-full rounded-lg border bg-background p-8",
+        "w-full rounded-lg border bg-background p-8 relative",
         !editable && "cursor-default",
         className
       )}
     >
       <EditorContent editor={editor} />
+      <AIInputDialog
+        isOpen={isAIInputOpen}
+        onClose={() => setIsAIInputOpen(false)}
+        onSubmit={handleAIGenerate}
+        position={aiInputPosition}
+      />
     </div>
   );
 }
@@ -104,6 +247,12 @@ export function DocumentEditor({
  */
 const SlashCommandExtension = Extension.create({
   name: "slashCommand",
+
+  addOptions() {
+    return {
+      onAICommand: () => { },
+    }
+  },
 
   addProseMirrorPlugins() {
     return [
@@ -117,7 +266,15 @@ const SlashCommandExtension = Extension.create({
         },
 
         items: ({ query }) => {
-          const commands = createDefaultSlashCommands(this.editor);
+          const commands = createDefaultSlashCommands(this.editor as any);
+
+          // Inject the AI command handler if it's the AI item
+          const aiCommand = commands.find(c => c.title === "AI Generator");
+          if (aiCommand) {
+            aiCommand.command = () => {
+              this.options.onAICommand();
+            };
+          }
 
           if (!query) {
             return commands;

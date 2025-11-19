@@ -127,7 +127,7 @@ export function BlockRenderer({
                 : "border-muted-foreground"
             )}
           >
-            {block.metadata?.checked && (
+            {!!block.metadata?.checked && (
               <Check className="h-3 w-3 text-primary-foreground" />
             )}
           </div>

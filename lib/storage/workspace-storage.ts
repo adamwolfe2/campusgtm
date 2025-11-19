@@ -4,7 +4,7 @@
  * Simple implementation for MVP - will be replaced with database later
  */
 
-import type { Workspace, StrategyModule, Block } from "@/types";
+import type { Workspace, StrategyModule } from "@/types";
 import type { OnboardingData } from "@/types/onboarding";
 import type { GTMStrategy } from "@/types/ai";
 

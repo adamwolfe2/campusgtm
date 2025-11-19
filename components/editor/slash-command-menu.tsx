@@ -12,7 +12,6 @@ import {
   Quote,
   Code,
   Sparkles,
-  Table,
   Image as ImageIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -212,13 +211,34 @@ export function createDefaultSlashCommands(editor: {
       },
     },
     {
+      title: "Image",
+      description: "Upload an image from your computer",
+      icon: ImageIcon,
+      keywords: ["image", "photo", "picture", "upload"],
+      command: () => {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "image/*";
+        input.onchange = async () => {
+          if (input.files?.length) {
+            const file = input.files[0];
+            // We need a way to access the upload function here. 
+            // Since this is a static list, we might need to dispatch a custom event or use the editor's storage/options
+            // For now, we'll dispatch a custom event that the editor can listen to
+            const event = new CustomEvent("editor:upload-image", { detail: { file } });
+            window.dispatchEvent(event);
+          }
+        };
+        input.click();
+      },
+    },
+    {
       title: "AI Generator",
       description: "Generate content with AI",
       icon: Sparkles,
       keywords: ["ai", "generate", "assistant", "gemini"],
       command: () => {
-        // TODO: Implement AI block generation
-        // This will trigger AI to generate content at cursor position
+        // This will be overridden by the extension
       },
     },
   ];
