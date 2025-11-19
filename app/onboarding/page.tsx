@@ -5,28 +5,33 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { OnboardingFlow } from "@/components/onboarding/onboarding-flow";
 import type { OnboardingData } from "@/types/onboarding";
-import { Sparkles } from "lucide-react";
+import { Sparkles, AlertCircle } from "lucide-react";
+import { generateCompleteStrategy } from "@/lib/generation/strategy-orchestrator";
+import { toast } from "sonner";
 
 export default function OnboardingPage() {
   const router = useRouter();
   const [isGenerating, setIsGenerating] = useState(false);
+  const [error, setError] = useState<string>();
 
   const handleComplete = async (data: OnboardingData) => {
     setIsGenerating(true);
+    setError(undefined);
 
-    // Store onboarding data in localStorage for now
-    localStorage.setItem("onboarding-data", JSON.stringify(data));
+    try {
+      // Generate complete GTM strategy using AI
+      const result = await generateCompleteStrategy(data);
 
-    // In a real app, this would:
-    // 1. Send data to server
-    // 2. Trigger AI strategy generation
-    // 3. Create workspace
-    // 4. Redirect to dashboard with generated strategy
-
-    // Simulate API call
-    setTimeout(() => {
-      router.push("/dashboard");
-    }, 2000);
+      // Success! Redirect to workspace
+      toast.success("Your GTM strategy has been generated!");
+      router.push(`/workspace/${result.workspace.id}`);
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to generate strategy";
+      setError(errorMessage);
+      toast.error(errorMessage);
+      setIsGenerating(false);
+    }
   };
 
   return (
@@ -59,6 +64,21 @@ export default function OnboardingPage() {
         <div className="rounded-2xl border bg-card p-8 shadow-lg sm:p-12">
           <OnboardingFlow onComplete={handleComplete} />
         </div>
+
+        {/* Error Message */}
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-6 flex items-center gap-3 rounded-lg border border-destructive/50 bg-destructive/10 p-4"
+          >
+            <AlertCircle className="h-5 w-5 text-destructive" />
+            <div>
+              <p className="font-medium text-destructive">Generation Failed</p>
+              <p className="text-sm text-destructive/80">{error}</p>
+            </div>
+          </motion.div>
+        )}
 
         {/* Footer */}
         <p className="mt-6 text-center text-sm text-muted-foreground">
