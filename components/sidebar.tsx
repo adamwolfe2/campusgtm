@@ -17,6 +17,9 @@ import {
   Target,
   Search,
   TrendingUp,
+  Trophy,
+  CheckSquare,
+  BarChart3,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -67,6 +70,26 @@ const intelligenceItems = [
     title: "Community Finder",
     href: "/dashboard/intelligence/communities",
     icon: Target,
+  },
+  {
+    title: "Competitor Tracker",
+    href: "/dashboard/intelligence/competitors",
+    icon: Trophy,
+  },
+  {
+    title: "Viral Content",
+    href: "/dashboard/intelligence/viral-content",
+    icon: TrendingUp,
+  },
+  {
+    title: "Daily Actions",
+    href: "/dashboard/intelligence/daily-actions",
+    icon: CheckSquare,
+  },
+  {
+    title: "Weekly Digest",
+    href: "/dashboard/intelligence/digest",
+    icon: BarChart3,
   },
 ] as const;
 

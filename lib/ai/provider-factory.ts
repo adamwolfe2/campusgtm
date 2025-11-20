@@ -152,3 +152,18 @@ export function formatProviderError(
 
   return baseMessage;
 }
+
+/**
+ * Gets a configured AI model instance for server-side usage
+ * Convenience wrapper for getDefaultAIConfig + createLanguageModel
+ */
+export async function getAIModel(): Promise<LanguageModel> {
+  const { getServerAIConfig } = await import("./config");
+  const config = getServerAIConfig();
+
+  if (!config) {
+    throw new Error("No AI provider configured. Please set up API keys in environment variables.");
+  }
+
+  return createLanguageModel(config);
+}
