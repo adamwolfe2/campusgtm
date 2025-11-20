@@ -15,6 +15,8 @@ interface ChatInputProps {
   size?: "default" | "large";
   showIcon?: boolean;
   className?: string;
+  value?: string;
+  onChange?: (value: string) => void;
 }
 
 export function ChatInput({
@@ -24,9 +26,15 @@ export function ChatInput({
   size = "default",
   showIcon = true,
   className,
+  value: externalValue,
+  onChange: externalOnChange,
 }: ChatInputProps) {
-  const [message, setMessage] = useState("");
+  const [internalMessage, setInternalMessage] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Use external value if provided (controlled), otherwise use internal state
+  const message = externalValue !== undefined ? externalValue : internalMessage;
+  const setMessage = externalOnChange !== undefined ? externalOnChange : setInternalMessage;
 
   const handleSubmit = async (e?: FormEvent) => {
     e?.preventDefault();

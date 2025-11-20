@@ -13,7 +13,7 @@ import {
   Loader2,
   Building2,
 } from "lucide-react";
-import { getWorkspaces, type WorkspaceWithModules } from "@/lib/database/workspace-service";
+import { getWorkspaces } from "@/lib/database/workspace-service";
 import { StrategyModuleType } from "@/types";
 import type { StrategyModule } from "@/types";
 import { toast } from "sonner";

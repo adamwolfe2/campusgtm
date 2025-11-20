@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Bell, Check, Sparkles, FileText, Users, Settings } from "lucide-react";
+import { Bell, Sparkles, FileText, Users, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Notification {

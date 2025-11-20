@@ -15,19 +15,19 @@ export function cn(...inputs: ClassValue[]) {
  */
 export const glass = {
   // Main glass effect - for cards, modals, chat bubbles
-  card: "bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border border-white/20 dark:border-gray-700/30 shadow-lg",
+  card: "bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border border-white/20 dark:border-gray-700/30 shadow-lg",
 
-  // Strong glass - for floating elements
-  strong: "bg-white/90 dark:bg-gray-900/90 backdrop-blur-2xl border border-white/30 dark:border-gray-700/40 shadow-xl",
+  // Strong glass - for floating elements (modals, chat, journal) - INCREASED OPACITY
+  strong: "bg-white/95 dark:bg-gray-900/95 backdrop-blur-2xl border border-white/30 dark:border-gray-700/40 shadow-xl",
 
   // Subtle glass - for backgrounds, sections
-  subtle: "bg-white/60 dark:bg-gray-900/60 backdrop-blur-md border border-white/10 dark:border-gray-700/20 shadow-md",
+  subtle: "bg-white/70 dark:bg-gray-900/70 backdrop-blur-md border border-white/10 dark:border-gray-700/20 shadow-md",
 
   // Input glass - for search bars, text inputs
-  input: "bg-white/70 dark:bg-gray-900/70 backdrop-blur-lg border border-gray-200/50 dark:border-gray-700/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20",
+  input: "bg-white/85 dark:bg-gray-900/85 backdrop-blur-lg border border-gray-200/50 dark:border-gray-700/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20",
 
   // Hover states
-  hover: "hover:bg-white/90 dark:hover:bg-gray-900/90 hover:shadow-xl transition-all duration-300",
+  hover: "hover:bg-white/95 dark:hover:bg-gray-900/95 hover:shadow-xl transition-all duration-300",
 };
 
 /**
@@ -55,7 +55,7 @@ export const animations = {
     initial: { opacity: 0, scale: 0.9 },
     animate: { opacity: 1, scale: 1 },
     exit: { opacity: 0, scale: 0.9 },
-    transition: { duration: 0.2, ease: "easeOut" },
+    transition: { duration: 0.2 },
   },
 
   // Slide in from right (for sidebars, panels)
