@@ -54,10 +54,10 @@ export async function GET(request: NextRequest) {
     weekEnd.setHours(23, 59, 59, 999);
 
     // Fetch active workspaces
-    const { data: workspaces, error: workspaceError } = await supabase
-      .from('workspaces')
+    const { data: workspaces, error: workspaceError } = (await supabase
+      .from('workspaces' as any)
       .select('id, name')
-      .limit(100); // Rate limit
+      .limit(100)) as any; // Rate limit
 
     if (workspaceError) {
       throw new Error(`Failed to fetch workspaces: ${workspaceError.message}`);
@@ -76,11 +76,11 @@ export async function GET(request: NextRequest) {
     for (const workspace of workspaces) {
       try {
         // Get automation preferences
-        const { data: prefs } = await supabase
-          .from('automation_preferences')
+        const { data: prefs } = (await supabase
+          .from('automation_preferences' as any)
           .select('*')
           .eq('workspace_id', workspace.id)
-          .single();
+          .single()) as any;
 
         // Skip if weekly digest is disabled
         if (prefs && !prefs.enable_weekly_digest) {
@@ -88,12 +88,12 @@ export async function GET(request: NextRequest) {
         }
 
         // Check if digest already exists for this week
-        const { data: existingDigest } = await supabase
-          .from('weekly_digests')
+        const { data: existingDigest } = (await supabase
+          .from('weekly_digests' as any)
           .select('id')
           .eq('workspace_id', workspace.id)
           .eq('week_start', weekStart.toISOString().split('T')[0])
-          .single();
+          .single()) as any;
 
         if (existingDigest) {
           continue; // Skip if already generated
@@ -102,16 +102,16 @@ export async function GET(request: NextRequest) {
         // Aggregate intelligence data from the past week
 
         // 1. Fetch communities discovered this week
-        const { data: communities } = await supabase
-          .from('icp_communities')
+        const { data: communities } = (await supabase
+          .from('icp_communities' as any)
           .select('name, platform, member_count, relevance_score, discovered_at')
           .eq('workspace_id', workspace.id)
           .gte('discovered_at', weekStart.toISOString())
-          .lte('discovered_at', weekEnd.toISOString());
+          .lte('discovered_at', weekEnd.toISOString())) as any;
 
         // 2. Fetch keyword mentions
-        const { data: keywordMentionsData } = await supabase
-          .from('keyword_mentions')
+        const { data: keywordMentionsData } = (await supabase
+          .from('keyword_mentions' as any)
           .select(`
             id,
             platform,
@@ -123,19 +123,19 @@ export async function GET(request: NextRequest) {
           `)
           .eq('monitored_keywords.workspace_id', workspace.id)
           .gte('detected_at', weekStart.toISOString())
-          .lte('detected_at', weekEnd.toISOString());
+          .lte('detected_at', weekEnd.toISOString())) as any;
 
         // 3. Fetch viral content
-        const { data: viralContentData } = await supabase
-          .from('viral_content')
+        const { data: viralContentData } = (await supabase
+          .from('viral_content' as any)
           .select('platform, title, engagement_score, why_viral, detected_at')
           .eq('workspace_id', workspace.id)
           .gte('detected_at', weekStart.toISOString())
-          .lte('detected_at', weekEnd.toISOString());
+          .lte('detected_at', weekEnd.toISOString())) as any;
 
         // 4. Fetch competitor changes
-        const { data: competitorChangesData } = await supabase
-          .from('competitor_changes')
+        const { data: competitorChangesData } = (await supabase
+          .from('competitor_changes' as any)
           .select(`
             id,
             url,
@@ -147,22 +147,22 @@ export async function GET(request: NextRequest) {
           `)
           .eq('competitors.workspace_id', workspace.id)
           .gte('detected_at', weekStart.toISOString())
-          .lte('detected_at', weekEnd.toISOString());
+          .lte('detected_at', weekEnd.toISOString())) as any;
 
         // 5. Fetch completed actions
-        const { data: actionsData } = await supabase
-          .from('daily_actions')
+        const { data: actionsData } = (await supabase
+          .from('daily_actions' as any)
           .select('action_type, title, completed_at')
           .eq('workspace_id', workspace.id)
           .eq('status', 'completed')
           .gte('completed_at', weekStart.toISOString())
-          .lte('completed_at', weekEnd.toISOString());
+          .lte('completed_at', weekEnd.toISOString())) as any;
 
         // Build weekly summary data
         const weeklyData = {
           weekStart,
           weekEnd,
-          communities: (communities || []).map(c => ({
+          communities: (communities || []).map((c: any) => ({
             name: c.name,
             platform: c.platform,
             memberCount: c.member_count || 0,
@@ -177,7 +177,7 @@ export async function GET(request: NextRequest) {
             engagementScore: m.engagement_score || 0,
             detectedAt: new Date(m.detected_at),
           })),
-          viralContent: (viralContentData || []).map(v => ({
+          viralContent: (viralContentData || []).map((v: any) => ({
             platform: v.platform,
             title: v.title,
             engagementScore: v.engagement_score || 0,
@@ -191,7 +191,7 @@ export async function GET(request: NextRequest) {
             impactScore: c.impact_score || 0,
             detectedAt: new Date(c.detected_at),
           })),
-          actionsCompleted: (actionsData || []).map(a => ({
+          actionsCompleted: (actionsData || []).map((a: any) => ({
             type: a.action_type,
             title: a.title,
             completedAt: new Date(a.completed_at),
@@ -202,8 +202,8 @@ export async function GET(request: NextRequest) {
         const digest = await generateWeeklyDigest(workspace.id, weeklyData);
 
         // Save digest to database
-        const { error: insertError } = await supabase
-          .from('weekly_digests')
+        const { error: insertError } = (await supabase
+          .from('weekly_digests' as any)
           .insert({
             workspace_id: workspace.id,
             week_start: weekStart.toISOString().split('T')[0],
@@ -216,7 +216,7 @@ export async function GET(request: NextRequest) {
               contentTrends: digest.contentTrends,
               nextWeekFocus: digest.nextWeekFocus,
             },
-          });
+          } as any)) as any;
 
         if (insertError) {
           throw new Error(`Failed to save digest: ${insertError.message}`);
@@ -243,7 +243,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Log successful run
-        await supabase.from('automation_logs').insert({
+        await supabase.from('automation_logs' as any).insert({
           workspace_id: workspace.id,
           job_type: 'weekly_digest',
           status: 'success',
@@ -252,7 +252,7 @@ export async function GET(request: NextRequest) {
             metrics: digest.metrics,
             emailSent: prefs?.email ? true : false,
           },
-        });
+        } as any);
 
         results.workspacesProcessed++;
 
@@ -262,13 +262,13 @@ export async function GET(request: NextRequest) {
         results.errors.push(errorMsg);
 
         // Log failed run
-        await supabase.from('automation_logs').insert({
+        await supabase.from('automation_logs' as any).insert({
           workspace_id: workspace.id,
           job_type: 'weekly_digest',
           status: 'failed',
           summary: errorMsg,
           details: { error: errorMsg },
-        });
+        } as any);
       }
     }
 

@@ -46,10 +46,10 @@ export async function GET(request: NextRequest) {
 
   try {
     // Fetch active workspaces with automation enabled
-    const { data: workspaces, error: workspaceError } = await supabase
-      .from('workspaces')
+    const { data: workspaces, error: workspaceError } = (await supabase
+      .from('workspaces' as any)
       .select('id, name')
-      .limit(100); // Rate limit: max 100 workspaces per run
+      .limit(100)) as any; // Rate limit: max 100 workspaces per run
 
     if (workspaceError) {
       throw new Error(`Failed to fetch workspaces: ${workspaceError.message}`);
@@ -68,11 +68,11 @@ export async function GET(request: NextRequest) {
     for (const workspace of workspaces) {
       try {
         // Get automation preferences
-        const { data: prefs } = await supabase
-          .from('automation_preferences')
+        const { data: prefs } = (await supabase
+          .from('automation_preferences' as any)
           .select('*')
           .eq('workspace_id', workspace.id)
-          .single();
+          .single()) as any;
 
         // Skip if daily digest is disabled
         if (prefs && !prefs.enable_daily_digest) {
@@ -80,27 +80,27 @@ export async function GET(request: NextRequest) {
         }
 
         // Get active monitored keywords for this workspace
-        const { data: keywords, error: keywordError } = await supabase
-          .from('monitored_keywords')
+        const { data: keywords, error: keywordError } = (await supabase
+          .from('monitored_keywords' as any)
           .select('keyword, platforms')
           .eq('workspace_id', workspace.id)
-          .eq('is_active', true);
+          .eq('is_active', true)) as any;
 
         if (keywordError || !keywords || keywords.length === 0) {
           continue; // Skip workspace if no keywords
         }
 
         // Get workspace ICP for context
-        const { data: knowledgeBase } = await supabase
-          .from('knowledge_bases')
+        const { data: knowledgeBase } = (await supabase
+          .from('knowledge_bases' as any)
           .select('onboarding_data')
           .eq('workspace_id', workspace.id)
-          .single();
+          .single()) as any;
 
         const icp = knowledgeBase?.onboarding_data?.targetAudience;
 
         // Monitor all keywords
-        const keywordList = keywords.map(k => k.keyword);
+        const keywordList = keywords.map((k: any) => k.keyword);
         const monitoringResult = await monitorAllKeywords(
           workspace.id,
           keywordList,
@@ -117,15 +117,15 @@ export async function GET(request: NextRequest) {
 
         for (const mention of highPriorityMentions) {
           // Find keyword_id
-          const { data: keywordRecord } = await supabase
-            .from('monitored_keywords')
+          const { data: keywordRecord } = (await supabase
+            .from('monitored_keywords' as any)
             .select('id')
             .eq('workspace_id', workspace.id)
             .eq('keyword', mention.metadata.keyword || keywordList[0])
-            .single();
+            .single()) as any;
 
           if (keywordRecord) {
-            await supabase.from('keyword_mentions').insert({
+            await supabase.from('keyword_mentions' as any).insert({
               keyword_id: keywordRecord.id,
               platform: mention.platform,
               url: mention.url,
@@ -136,11 +136,12 @@ export async function GET(request: NextRequest) {
               engagement_score: mention.engagementScore,
               suggested_reply: mention.suggestedReply,
               metadata: mention.metadata,
-            });
+            } as any);
           }
         }
 
         // Generate daily actions if we have high-priority items
+        let actionsCount = 0;
         if (monitoringResult.highPriorityCount > 0) {
           const intelligenceData = {
             keywordMentions: monitoringResult.mentions.slice(0, 10).map(m => ({
@@ -160,10 +161,11 @@ export async function GET(request: NextRequest) {
 
           const actions = await generateDailyActions(workspace.id, intelligenceData);
           results.actionsGenerated += actions.length;
+          actionsCount = actions.length;
 
           // Save actions to database
           for (const action of actions) {
-            await supabase.from('daily_actions').insert({
+            await supabase.from('daily_actions' as any).insert({
               workspace_id: workspace.id,
               action_type: action.type,
               title: action.title,
@@ -172,12 +174,12 @@ export async function GET(request: NextRequest) {
               effort_minutes: parseInt(action.estimatedTime) || 30,
               source_type: action.sourceType,
               source_id: action.sourceId,
-            });
+            } as any);
           }
         }
 
         // Log successful run
-        await supabase.from('automation_logs').insert({
+        await supabase.from('automation_logs' as any).insert({
           workspace_id: workspace.id,
           job_type: 'daily_scan',
           status: 'success',
@@ -185,9 +187,9 @@ export async function GET(request: NextRequest) {
           details: {
             mentionsFound: monitoringResult.totalMentions,
             highPriority: monitoringResult.highPriorityCount,
-            actionsGenerated: actions?.length || 0,
+            actionsGenerated: actionsCount,
           },
-        });
+        } as any);
 
         results.workspacesProcessed++;
 
@@ -200,13 +202,13 @@ export async function GET(request: NextRequest) {
         results.errors.push(errorMsg);
 
         // Log failed run
-        await supabase.from('automation_logs').insert({
+        await supabase.from('automation_logs' as any).insert({
           workspace_id: workspace.id,
           job_type: 'daily_scan',
           status: 'failed',
           summary: errorMsg,
           details: { error: errorMsg },
-        });
+        } as any);
       }
     }
 

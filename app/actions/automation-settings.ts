@@ -59,11 +59,11 @@ export async function getAutomationPreferences(
       throw new Error('Database not configured');
     }
 
-    const { data, error } = await supabase
-      .from('automation_preferences')
+    const { data, error } = (await supabase
+      .from('automation_preferences' as any)
       .select('*')
       .eq('workspace_id', workspaceId)
-      .single();
+      .single()) as any;
 
     if (error) {
       if (error.code === 'PGRST116') {
@@ -81,16 +81,16 @@ export async function getAutomationPreferences(
     }
 
     return {
-      id: data.id,
-      workspaceId: data.workspace_id,
-      email: data.email,
-      enableDailyDigest: data.enable_daily_digest,
-      enableWeeklyDigest: data.enable_weekly_digest,
-      enableAlerts: data.enable_alerts,
-      preferredSendTime: data.preferred_send_time,
-      timezone: data.timezone,
-      createdAt: new Date(data.created_at),
-      updatedAt: new Date(data.updated_at),
+      id: data?.id,
+      workspaceId: data?.workspace_id,
+      email: data?.email,
+      enableDailyDigest: data?.enable_daily_digest,
+      enableWeeklyDigest: data?.enable_weekly_digest,
+      enableAlerts: data?.enable_alerts,
+      preferredSendTime: data?.preferred_send_time,
+      timezone: data?.timezone,
+      createdAt: data?.created_at ? new Date(data.created_at) : undefined,
+      updatedAt: data?.updated_at ? new Date(data.updated_at) : undefined,
     };
   } catch (error) {
     console.error('Get automation preferences error:', error);
@@ -112,11 +112,11 @@ export async function updateAutomationPreferences(
     }
 
     // Check if preferences exist
-    const { data: existing } = await supabase
-      .from('automation_preferences')
+    const { data: existing } = (await supabase
+      .from('automation_preferences' as any)
       .select('id')
       .eq('workspace_id', workspaceId)
-      .single();
+      .single()) as any;
 
     const updateData = {
       workspace_id: workspaceId,
@@ -126,16 +126,16 @@ export async function updateAutomationPreferences(
       enable_alerts: preferences.enableAlerts,
       preferred_send_time: preferences.preferredSendTime,
       timezone: preferences.timezone,
-    };
+    } as any;
 
     if (existing) {
       // Update existing
-      const { data, error } = await supabase
-        .from('automation_preferences')
+      const { data, error } = (await (supabase
+        .from('automation_preferences' as any) as any)
         .update(updateData)
         .eq('workspace_id', workspaceId)
         .select()
-        .single();
+        .single()) as any;
 
       if (error) throw error;
 
@@ -153,11 +153,11 @@ export async function updateAutomationPreferences(
       };
     } else {
       // Insert new
-      const { data, error } = await supabase
-        .from('automation_preferences')
-        .insert(updateData)
+      const { data, error } = (await supabase
+        .from('automation_preferences' as any)
+        .insert(updateData as any)
         .select()
-        .single();
+        .single()) as any;
 
       if (error) throw error;
 
@@ -192,15 +192,15 @@ export async function getScheduledMonitors(
       throw new Error('Database not configured');
     }
 
-    const { data, error } = await supabase
-      .from('scheduled_monitors')
+    const { data, error } = (await supabase
+      .from('scheduled_monitors' as any)
       .select('*')
       .eq('workspace_id', workspaceId)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })) as any;
 
     if (error) throw error;
 
-    return (data || []).map(m => ({
+    return (data || []).map((m: any) => ({
       id: m.id,
       workspaceId: m.workspace_id,
       monitorType: m.monitor_type as 'keyword' | 'community' | 'competitor',
@@ -231,8 +231,8 @@ export async function createScheduledMonitor(
       throw new Error('Database not configured');
     }
 
-    const { data, error } = await supabase
-      .from('scheduled_monitors')
+    const { data, error } = (await supabase
+      .from('scheduled_monitors' as any)
       .insert({
         workspace_id: workspaceId,
         monitor_type: monitor.monitorType,
@@ -241,9 +241,9 @@ export async function createScheduledMonitor(
         is_active: monitor.isActive,
         last_run_at: monitor.lastRunAt?.toISOString(),
         next_run_at: monitor.nextRunAt?.toISOString(),
-      })
+      } as any)
       .select()
-      .single();
+      .single()) as any;
 
     if (error) throw error;
 
@@ -275,10 +275,10 @@ export async function deleteScheduledMonitor(monitorId: string): Promise<void> {
       throw new Error('Database not configured');
     }
 
-    const { error } = await supabase
-      .from('scheduled_monitors')
+    const { error } = (await supabase
+      .from('scheduled_monitors' as any)
       .delete()
-      .eq('id', monitorId);
+      .eq('id', monitorId)) as any;
 
     if (error) throw error;
   } catch (error) {
@@ -300,10 +300,10 @@ export async function toggleMonitor(
       throw new Error('Database not configured');
     }
 
-    const { error } = await supabase
-      .from('scheduled_monitors')
+    const { error } = (await (supabase
+      .from('scheduled_monitors' as any) as any)
       .update({ is_active: isActive })
-      .eq('id', monitorId);
+      .eq('id', monitorId)) as any;
 
     if (error) throw error;
   } catch (error) {
@@ -325,16 +325,16 @@ export async function getAutomationLogs(
       throw new Error('Database not configured');
     }
 
-    const { data, error } = await supabase
-      .from('automation_logs')
+    const { data, error } = (await supabase
+      .from('automation_logs' as any)
       .select('*')
       .eq('workspace_id', workspaceId)
       .order('executed_at', { ascending: false })
-      .limit(limit);
+      .limit(limit)) as any;
 
     if (error) throw error;
 
-    return (data || []).map(log => ({
+    return (data || []).map((log: any) => ({
       id: log.id,
       workspaceId: log.workspace_id,
       jobType: log.job_type as 'daily_scan' | 'weekly_digest' | 'competitor_monitor',

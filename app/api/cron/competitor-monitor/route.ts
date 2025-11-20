@@ -46,11 +46,11 @@ export async function GET(request: NextRequest) {
 
   try {
     // Fetch all active competitors
-    const { data: competitors, error: competitorError } = await supabase
-      .from('competitors')
+    const { data: competitors, error: competitorError } = (await supabase
+      .from('competitors' as any)
       .select('id, workspace_id, name, website, tracked_urls')
       .eq('is_active', true)
-      .limit(50); // Rate limit: max 50 competitors per run
+      .limit(50)) as any; // Rate limit: max 50 competitors per run
 
     if (competitorError) {
       throw new Error(`Failed to fetch competitors: ${competitorError.message}`);
@@ -81,23 +81,23 @@ export async function GET(request: NextRequest) {
             results.snapshotsTaken++;
 
             // Get previous snapshot
-            const { data: previousSnapshot } = await supabase
-              .from('competitor_snapshots')
+            const { data: previousSnapshot } = (await supabase
+              .from('competitor_snapshots' as any)
               .select('content, content_hash, metadata')
               .eq('competitor_id', competitor.id)
               .eq('url', url)
               .order('scraped_at', { ascending: false })
               .limit(1)
-              .single();
+              .single()) as any;
 
             // Save new snapshot
-            await supabase.from('competitor_snapshots').insert({
+            await supabase.from('competitor_snapshots' as any).insert({
               competitor_id: competitor.id,
               url: newSnapshot.url,
               content_hash: newSnapshot.contentHash,
               content: newSnapshot.content,
               metadata: newSnapshot.metadata,
-            });
+            } as any);
 
             // Compare with previous snapshot if exists
             if (previousSnapshot && previousSnapshot.content_hash !== newSnapshot.contentHash) {
@@ -115,7 +115,7 @@ export async function GET(request: NextRequest) {
 
               // Save significant changes
               for (const change of changes) {
-                await supabase.from('competitor_changes').insert({
+                await supabase.from('competitor_changes' as any).insert({
                   competitor_id: competitor.id,
                   url,
                   change_type: change.changeType,
@@ -123,7 +123,7 @@ export async function GET(request: NextRequest) {
                   old_content: change.oldContent,
                   new_content: change.newContent,
                   impact_score: change.impactScore,
-                });
+                } as any);
 
                 results.changesDetected++;
 
@@ -138,7 +138,7 @@ export async function GET(request: NextRequest) {
 
               // Log changes
               if (changes.length > 0) {
-                await supabase.from('automation_logs').insert({
+                await supabase.from('automation_logs' as any).insert({
                   workspace_id: competitor.workspace_id,
                   job_type: 'competitor_monitor',
                   status: 'success',
@@ -153,7 +153,7 @@ export async function GET(request: NextRequest) {
                       summary: c.summary,
                     })),
                   },
-                });
+                } as any);
               }
             }
 
@@ -172,7 +172,7 @@ export async function GET(request: NextRequest) {
         results.errors.push(errorMsg);
 
         // Log failed run
-        await supabase.from('automation_logs').insert({
+        await supabase.from('automation_logs' as any).insert({
           workspace_id: competitor.workspace_id,
           job_type: 'competitor_monitor',
           status: 'failed',
@@ -182,7 +182,7 @@ export async function GET(request: NextRequest) {
             competitorName: competitor.name,
             error: errorMsg
           },
-        });
+        } as any);
       }
     }
 
