@@ -206,6 +206,38 @@ export interface Database {
           updated_at?: string;
         };
       };
+      journal_entries: {
+        Row: {
+          id: string;
+          user_id: string;
+          workspace_id: string | null;
+          question_id: string;
+          question: string;
+          answer: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          workspace_id?: string | null;
+          question_id: string;
+          question: string;
+          answer: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          workspace_id?: string | null;
+          question_id?: string;
+          question?: string;
+          answer?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
     };
     Views: {
       [_ in never]: never;

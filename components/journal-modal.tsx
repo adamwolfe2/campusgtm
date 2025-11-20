@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useUser } from "@clerk/nextjs";
 import { motion, AnimatePresence } from "framer-motion";
 import { BookOpen, X, Sparkles, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { glass, animations } from "@/lib/design-system";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { saveJournalEntry, hasAnsweredQuestion } from "@/app/actions/journal";
 
 interface JournalQuestion {
   id: string;
@@ -45,6 +47,7 @@ const DEFAULT_QUESTIONS: JournalQuestion[] = [
 ];
 
 export function JournalModal() {
+  const { user } = useUser();
   const [isOpen, setIsOpen] = useState(false);
   const [questions, setQuestions] = useState<JournalQuestion[]>(DEFAULT_QUESTIONS);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -54,16 +57,51 @@ export function JournalModal() {
   const currentQuestion = questions[currentIndex];
   const unansweredCount = questions.filter((q) => !q.answered).length;
 
+  // Check which questions have been answered on mount
+  useEffect(() => {
+    async function checkAnsweredQuestions() {
+      if (!user?.id) return;
+
+      const answeredStatuses = await Promise.all(
+        DEFAULT_QUESTIONS.map((q) => hasAnsweredQuestion(user.id, q.id))
+      );
+
+      setQuestions((prev) =>
+        prev.map((q, i) => ({
+          ...q,
+          answered: answeredStatuses[i],
+        }))
+      );
+    }
+
+    checkAnsweredQuestions();
+  }, [user?.id]);
+
   const handleSaveAnswer = async () => {
     if (!answer.trim()) {
       toast.error("Please provide an answer");
       return;
     }
 
+    if (!user?.id) {
+      toast.error("You must be logged in to save answers");
+      return;
+    }
+
     setIsSaving(true);
     try {
-      // TODO: Save to database and update AI context
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      // Save to Supabase
+      const result = await saveJournalEntry(
+        user.id,
+        currentQuestion.id,
+        currentQuestion.question,
+        answer
+      );
+
+      if (!result.success) {
+        toast.error(result.error || "Failed to save answer");
+        return;
+      }
 
       setQuestions((prev) =>
         prev.map((q, i) =>
@@ -88,6 +126,7 @@ export function JournalModal() {
 
       setAnswer("");
     } catch (error) {
+      console.error("Failed to save answer:", error);
       toast.error("Failed to save answer");
     } finally {
       setIsSaving(false);
