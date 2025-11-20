@@ -9,6 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Users, Calendar, MessageSquare, FileText, Zap, Edit3 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { updateBlockContent } from "@/lib/client/block-operations";
+import { toast } from "sonner";
 
 interface StrategyModuleViewProps {
   module: StrategyModule;
@@ -45,6 +47,22 @@ export function StrategyModuleView({
   const Icon = MODULE_ICONS[module.type] || FileText;
   const colorClass = MODULE_COLORS[module.type] || "bg-gray-500";
 
+  const handleBlockUpdate = async (blockId: string, content: string) => {
+    try {
+      const result = await updateBlockContent(blockId, content);
+
+      if (!result.success) {
+        toast.error(result.error || "Failed to save changes");
+        return;
+      }
+
+      toast.success("Changes saved");
+    } catch (error) {
+      console.error("Failed to update block:", error);
+      toast.error("Failed to save changes");
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -78,6 +96,7 @@ export function StrategyModuleView({
           <BlockListRenderer
             blocks={module.blocks}
             editable={editable}
+            onUpdateBlock={editable ? handleBlockUpdate : undefined}
           />
         </CardContent>
       </Card>

@@ -178,6 +178,57 @@ export function updateStrategyModule(
 }
 
 /**
+ * Updates a block's content
+ */
+export function updateBlockContent(blockId: string, content: string): boolean {
+  const workspaces = getWorkspaces();
+
+  for (const workspace of workspaces) {
+    for (const module of workspace.modules) {
+      const blockIndex = module.blocks.findIndex((b) => b.id === blockId);
+      if (blockIndex !== -1) {
+        module.blocks[blockIndex] = {
+          ...module.blocks[blockIndex],
+          content,
+          updatedAt: new Date(),
+        };
+        saveWorkspaces(workspaces);
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Updates a block's metadata (for checklist checked status, etc.)
+ */
+export function updateBlockMetadata(
+  blockId: string,
+  metadata: Record<string, unknown>
+): boolean {
+  const workspaces = getWorkspaces();
+
+  for (const workspace of workspaces) {
+    for (const module of workspace.modules) {
+      const blockIndex = module.blocks.findIndex((b) => b.id === blockId);
+      if (blockIndex !== -1) {
+        module.blocks[blockIndex] = {
+          ...module.blocks[blockIndex],
+          metadata,
+          updatedAt: new Date(),
+        };
+        saveWorkspaces(workspaces);
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+/**
  * Gets current workspace ID
  */
 export function getCurrentWorkspaceId(): string | null {
