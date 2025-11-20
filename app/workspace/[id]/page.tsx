@@ -7,9 +7,10 @@ import { motion } from "framer-motion";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { StrategyModulesGrid } from "@/components/strategy-module-view";
 import { ExportDialog } from "@/components/export-dialog";
+import { ConfirmationDialog } from "@/components/confirmation-dialog";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Share2, Sparkles, Loader2 } from "lucide-react";
-import { getWorkspace, type WorkspaceWithModules } from "@/lib/database/workspace-service";
+import { ArrowLeft, Share2, Sparkles, Loader2, Trash2 } from "lucide-react";
+import { getWorkspace, deleteWorkspace, type WorkspaceWithModules } from "@/lib/database/workspace-service";
 import { toast } from "sonner";
 
 export default function WorkspacePage() {
@@ -18,6 +19,8 @@ export default function WorkspacePage() {
   const { user } = useUser();
   const [workspace, setWorkspace] = useState<WorkspaceWithModules | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const loadWorkspace = async () => {
@@ -50,6 +53,25 @@ export default function WorkspacePage() {
 
     loadWorkspace();
   }, [params.id, router, user?.id]);
+
+  const handleDeleteWorkspace = async () => {
+    if (!workspace) return;
+
+    setIsDeleting(true);
+    try {
+      await deleteWorkspace(workspace.id, user?.id);
+      toast.success("Workspace deleted successfully");
+      router.push("/workspaces");
+    } catch (error) {
+      console.error("Failed to delete workspace:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to delete workspace"
+      );
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteDialogOpen(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -118,8 +140,29 @@ export default function WorkspacePage() {
                 Share
               </Button>
               <ExportDialog workspace={workspace} />
+              <Button
+                variant="outline"
+                className="gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                onClick={() => setIsDeleteDialogOpen(true)}
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete
+              </Button>
             </div>
           </div>
+
+          {/* Delete Confirmation Dialog */}
+          <ConfirmationDialog
+            open={isDeleteDialogOpen}
+            onOpenChange={setIsDeleteDialogOpen}
+            title="Delete Workspace?"
+            description={`Are you sure you want to delete "${workspace.name}"? This will permanently delete all strategy modules, content, and data. This action cannot be undone.`}
+            confirmText="Delete Workspace"
+            cancelText="Cancel"
+            onConfirm={handleDeleteWorkspace}
+            isLoading={isDeleting}
+            variant="destructive"
+          />
 
           {/* Strategy Summary */}
           {workspace.generatedStrategy && (
