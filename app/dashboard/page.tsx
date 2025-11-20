@@ -30,20 +30,12 @@ import { glass, animations, gradients } from "@/lib/design-system";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
-interface ChatMessage {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-}
-
 export default function DashboardPage() {
   const router = useRouter();
   const { user } = useUser();
   const [workspaces, setWorkspaces] = useState<WorkspaceWithModules[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
-  const [isChatLoading, setIsChatLoading] = useState(false);
 
   useEffect(() => {
     const loadWorkspaces = async () => {
@@ -69,96 +61,10 @@ export default function DashboardPage() {
     setInput(prompt);
   };
 
-  // Handle chat submission with streaming
-  const handleChatSubmit = async (message: string) => {
-    if (!message.trim() || isChatLoading) return;
-
-    setIsChatLoading(true);
-
-    // Add user message
-    const userMessage: ChatMessage = {
-      id: Date.now().toString(),
-      role: "user",
-      content: message,
-    };
-    setMessages((prev) => [...prev, userMessage]);
-    setInput("");
-
-    try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message,
-          conversationHistory: messages,
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.text();
-        throw new Error(error || 'Failed to get response');
-      }
-
-      // Handle streaming response from AI SDK
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-
-      if (!reader) {
-        throw new Error('No response body');
-      }
-
-      // Create assistant message
-      const assistantMessageId = (Date.now() + 1).toString();
-      let assistantContent = "";
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: assistantMessageId,
-          role: "assistant",
-          content: "",
-        },
-      ]);
-
-      // Read AI SDK data stream format
-      let buffer = "";
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-
-        // Keep the last incomplete line in the buffer
-        buffer = lines.pop() || "";
-
-        for (const line of lines) {
-          if (!line.trim()) continue;
-
-          // AI SDK sends lines prefixed with numbers like "0:" for text chunks
-          if (line.startsWith('0:')) {
-            try {
-              const data = line.slice(2);
-              assistantContent += data;
-              setMessages((prev) =>
-                prev.map((msg) =>
-                  msg.id === assistantMessageId
-                    ? { ...msg, content: assistantContent }
-                    : msg
-                )
-              );
-            } catch (e) {
-              console.error('Parse error:', e);
-            }
-          }
-        }
-      }
-    } catch (error) {
-      console.error('[Chat] Error:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to send message');
-    } finally {
-      setIsChatLoading(false);
-    }
+  // Redirect to chat page with the message
+  const handleChatSubmit = (message: string) => {
+    if (!message.trim()) return;
+    router.push(`/chat?prompt=${encodeURIComponent(message)}`);
   };
 
   return (
@@ -211,7 +117,7 @@ export default function DashboardPage() {
         {/* Main Chat Input */}
         <ChatInput
           onSubmit={handleChatSubmit}
-          isLoading={isChatLoading}
+          isLoading={false}
           size="large"
           showIcon={true}
           value={input}
@@ -225,43 +131,6 @@ export default function DashboardPage() {
           onSelect={handlePromptSelect}
           className="mb-16"
         />
-
-        {/* Chat Messages - Show conversation history */}
-        {messages.length > 0 && (
-          <motion.div
-            {...animations.fadeInUp}
-            className="w-full max-w-4xl mb-16"
-          >
-            <Card className={cn(glass.card, "p-6")}>
-              <div className="space-y-6">
-                {messages.map((message, index) => (
-                  <motion.div
-                    key={message.id}
-                    {...animations.fadeInUp}
-                    transition={{ delay: index * 0.1 }}
-                    className={cn(
-                      "flex gap-4",
-                      message.role === "user" ? "justify-end" : "justify-start"
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        "max-w-[80%] rounded-2xl px-4 py-3",
-                        message.role === "user"
-                          ? "bg-primary text-primary-foreground"
-                          : cn(glass.subtle, "border")
-                      )}
-                    >
-                      <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                        {message.content}
-                      </p>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </Card>
-          </motion.div>
-        )}
 
         {/* Workspaces Section */}
         {!isLoading && workspaces.length > 0 && (

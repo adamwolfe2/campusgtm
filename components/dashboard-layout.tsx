@@ -4,7 +4,7 @@ import * as React from "react";
 import { motion } from "framer-motion";
 import { Sidebar } from "@/components/sidebar";
 import { TopNav } from "@/components/top-nav";
-import { FloatingChatBar } from "@/components/floating-chat-bar";
+import { FloatingChatButton } from "@/components/floating-chat-button";
 import { JournalModal } from "@/components/journal-modal";
 import { pageVariants } from "@/lib/animation-variants";
 
@@ -35,7 +35,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       </div>
 
       {/* Floating Components */}
-      <FloatingChatBar />
+      <FloatingChatButton />
       <JournalModal />
     </div>
   );

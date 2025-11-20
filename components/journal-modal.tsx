@@ -123,12 +123,9 @@ export function JournalModal() {
             <Button
               size="icon"
               onClick={() => setIsOpen(true)}
-              className={cn(
-                "h-14 w-14 rounded-full shadow-2xl",
-                glass.strong
-              )}
+              className="h-14 w-14 rounded-2xl bg-white shadow-lg hover:shadow-xl dark:bg-gray-900"
             >
-              <BookOpen className="h-6 w-6" />
+              <BookOpen className="h-6 w-6 text-gray-900 dark:text-gray-100" />
             </Button>
 
             {/* Badge for unanswered questions */}
@@ -136,7 +133,7 @@ export function JournalModal() {
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground"
+                className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground shadow-lg"
               >
                 {unansweredCount}
               </motion.div>
@@ -147,10 +144,7 @@ export function JournalModal() {
           <motion.div
             key="modal"
             {...animations.slideInLeft}
-            className={cn(
-              "flex h-[500px] w-[400px] flex-col rounded-2xl shadow-2xl",
-              glass.strong
-            )}
+            className="flex h-[500px] w-[400px] flex-col rounded-2xl bg-white shadow-2xl dark:bg-gray-900 border border-gray-200 dark:border-gray-800"
           >
             {/* Header */}
             <div className="flex items-center justify-between border-b border-white/10 p-4">
