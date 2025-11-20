@@ -6,19 +6,22 @@ import { useUser } from "@clerk/nextjs";
 import { motion } from "framer-motion";
 import { OnboardingFlow } from "@/components/onboarding/onboarding-flow";
 import type { OnboardingData } from "@/types/onboarding";
-import { Sparkles, AlertCircle } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { generateStrategyAction } from "@/app/actions/generate-strategy";
+import { AIErrorState } from "@/components/error-state";
 import { toast } from "sonner";
 
 export default function OnboardingPage() {
   const router = useRouter();
   const { user } = useUser();
   const [isGenerating, setIsGenerating] = useState(false);
-  const [error, setError] = useState<string>();
+  const [error, setError] = useState<Error | null>(null);
+  const [lastOnboardingData, setLastOnboardingData] = useState<OnboardingData | null>(null);
 
   const handleComplete = async (data: OnboardingData) => {
     setIsGenerating(true);
-    setError(undefined);
+    setError(null);
+    setLastOnboardingData(data); // Store for retry
 
     try {
       // Generate complete GTM strategy using AI (via Server Action)
@@ -28,12 +31,21 @@ export default function OnboardingPage() {
       toast.success("Your GTM strategy has been generated!");
       router.push(`/workspace/${result.workspace.id}`);
     } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Failed to generate strategy";
-      setError(errorMessage);
-      toast.error(errorMessage);
+      const error = err instanceof Error ? err : new Error("Failed to generate strategy");
+      setError(error);
+      toast.error(error.message);
       setIsGenerating(false);
     }
+  };
+
+  const handleRetry = () => {
+    if (lastOnboardingData) {
+      handleComplete(lastOnboardingData);
+    }
+  };
+
+  const handleGoToSettings = () => {
+    router.push("/settings");
   };
 
   return (
@@ -64,7 +76,13 @@ export default function OnboardingPage() {
 
         {/* Onboarding Flow */}
         <div className="rounded-2xl border bg-card p-8 shadow-lg sm:p-12">
-          {isGenerating ? (
+          {error ? (
+            <AIErrorState
+              error={error}
+              onRetry={handleRetry}
+              onGoToSettings={handleGoToSettings}
+            />
+          ) : isGenerating ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
@@ -85,21 +103,6 @@ export default function OnboardingPage() {
             <OnboardingFlow onComplete={handleComplete} />
           )}
         </div>
-
-        {/* Error Message */}
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-6 flex items-center gap-3 rounded-lg border border-destructive/50 bg-destructive/10 p-4"
-          >
-            <AlertCircle className="h-5 w-5 text-destructive" />
-            <div>
-              <p className="font-medium text-destructive">Generation Failed</p>
-              <p className="text-sm text-destructive/80">{error}</p>
-            </div>
-          </motion.div>
-        )}
 
         {/* Footer */}
         <p className="mt-6 text-center text-sm text-muted-foreground">

@@ -24,6 +24,8 @@ export function FloatingChatBar() {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (message: string) => {
+    if (!message.trim() || isLoading) return;
+
     const userMessage: Message = {
       id: Date.now().toString(),
       role: "user",
@@ -35,19 +37,73 @@ export function FloatingChatBar() {
     setIsLoading(true);
 
     try {
-      // TODO: Implement actual chat API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message,
+          conversationHistory: messages.map(msg => ({
+            id: msg.id,
+            role: msg.role,
+            content: msg.content,
+          })),
+        }),
+      });
 
-      const assistantMessage: Message = {
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(error || 'Failed to get response');
+      }
+
+      // Handle streaming response
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+
+      if (!reader) {
+        throw new Error('No response body');
+      }
+
+      // Create assistant message
+      const assistantMessageId = (Date.now() + 1).toString();
+      let assistantContent = "";
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: assistantMessageId,
+          role: "assistant",
+          content: "",
+          timestamp: new Date(),
+        },
+      ]);
+
+      // Read streaming response
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        assistantContent += decoder.decode(value, { stream: false });
+
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === assistantMessageId
+              ? { ...msg, content: assistantContent }
+              : msg
+          )
+        );
+      }
+    } catch (error) {
+      console.error('[FloatingChat] Error:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to send message');
+
+      // Add error message to chat
+      const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: "Chat functionality coming soon! This will be powered by your proprietary GTM knowledge base.",
+        content: "I'm having trouble connecting right now. Please try again or check your AI settings.",
         timestamp: new Date(),
       };
-
-      setMessages((prev) => [...prev, assistantMessage]);
-    } catch (error) {
-      toast.error("Failed to send message");
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }

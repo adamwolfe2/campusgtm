@@ -21,12 +21,12 @@ import {
   Clock,
   FileText,
   ArrowRight,
-  Loader2,
   Plus,
   Building2,
 } from "lucide-react";
 import { getWorkspaces, type WorkspaceWithModules } from "@/lib/database/workspace-service";
-import { glass, animations, gradients } from "@/lib/design-system";
+import { WorkspaceGridSkeleton } from "@/components/loading-skeletons";
+import { glass, animations, gradients, hoverAnimations, tapAnimations } from "@/lib/design-system";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -160,13 +160,14 @@ export default function DashboardPage() {
                 <motion.div
                   key={workspace.id}
                   {...animations.fadeInUp}
+                  whileHover={hoverAnimations.card}
+                  whileTap={tapAnimations.card}
                   transition={{ delay: 0.4 + index * 0.05 }}
                 >
                   <Card
                     className={cn(
                       "group cursor-pointer transition-all duration-300",
-                      glass.card,
-                      glass.hover
+                      glass.card
                     )}
                     onClick={() => router.push(`/workspace/${workspace.id}`)}
                   >
@@ -222,9 +223,15 @@ export default function DashboardPage() {
         {isLoading && (
           <motion.div
             {...animations.fadeInUp}
-            className="flex items-center justify-center py-12"
+            className="w-full max-w-6xl"
           >
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold">Your Workspaces</h2>
+              <p className="text-sm text-muted-foreground">
+                Loading your GTM strategies...
+              </p>
+            </div>
+            <WorkspaceGridSkeleton count={6} />
           </motion.div>
         )}
 

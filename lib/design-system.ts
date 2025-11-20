@@ -11,14 +11,14 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
- * Glass-morphism style presets
+ * Glass-morphism style presets with consistent shadows
  */
 export const glass = {
   // Main glass effect - for cards, modals, chat bubbles
   card: "bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border border-white/20 dark:border-gray-700/30 shadow-lg",
 
-  // Strong glass - for floating elements (modals, chat, journal) - INCREASED OPACITY
-  strong: "bg-white/95 dark:bg-gray-900/95 backdrop-blur-2xl border border-white/30 dark:border-gray-700/40 shadow-xl",
+  // Strong glass - for floating elements (modals, chat, journal, sidebar, nav)
+  strong: "bg-white/95 dark:bg-gray-900/95 backdrop-blur-2xl border border-white/30 dark:border-gray-700/40 shadow-2xl",
 
   // Subtle glass - for backgrounds, sections
   subtle: "bg-white/70 dark:bg-gray-900/70 backdrop-blur-md border border-white/10 dark:border-gray-700/20 shadow-md",
@@ -27,7 +27,50 @@ export const glass = {
   input: "bg-white/85 dark:bg-gray-900/85 backdrop-blur-lg border border-gray-200/50 dark:border-gray-700/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20",
 
   // Hover states
-  hover: "hover:bg-white/95 dark:hover:bg-gray-900/95 hover:shadow-xl transition-all duration-300",
+  hover: "hover:bg-white/95 dark:hover:bg-gray-900/95 hover:shadow-2xl transition-all duration-300",
+};
+
+/**
+ * Shadow system - consistent elevation hierarchy
+ */
+export const shadows = {
+  // Subtle elements (inputs, subtle buttons)
+  sm: "shadow-sm",
+
+  // Standard elements (buttons, small cards)
+  md: "shadow-md",
+
+  // Cards and panels (default card elevation)
+  lg: "shadow-lg",
+
+  // Prominent cards (hover states, important cards)
+  xl: "shadow-xl",
+
+  // Floating elements (modals, dropdowns, tooltips, floating bars)
+  "2xl": "shadow-2xl",
+
+  // No shadow
+  none: "shadow-none",
+};
+
+/**
+ * Border radius system - consistent rounding
+ */
+export const radius = {
+  // Small elements (buttons, inputs, tags)
+  sm: "rounded-md", // 6px
+
+  // Standard elements (buttons, inputs)
+  DEFAULT: "rounded-lg", // 8px
+
+  // Cards and panels
+  card: "rounded-xl", // 12px
+
+  // Large containers (modals, sections)
+  lg: "rounded-2xl", // 16px
+
+  // Circular (avatars, icon buttons)
+  full: "rounded-full",
 };
 
 /**
@@ -39,7 +82,7 @@ export const animations = {
     initial: { opacity: 0, y: 20 },
     animate: { opacity: 1, y: 0 },
     exit: { opacity: 0, y: -20 },
-    transition: { duration: 0.3 },
+    transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] }, // Smooth easing
   },
 
   // Fade in from top (for modals, dropdowns)
@@ -47,7 +90,7 @@ export const animations = {
     initial: { opacity: 0, y: -20 },
     animate: { opacity: 1, y: 0 },
     exit: { opacity: 0, y: 20 },
-    transition: { duration: 0.3 },
+    transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] },
   },
 
   // Scale in (for floating buttons, chat bubbles)
@@ -55,7 +98,7 @@ export const animations = {
     initial: { opacity: 0, scale: 0.9 },
     animate: { opacity: 1, scale: 1 },
     exit: { opacity: 0, scale: 0.9 },
-    transition: { duration: 0.2 },
+    transition: { duration: 0.2, ease: [0.22, 1, 0.36, 1] },
   },
 
   // Slide in from right (for sidebars, panels)
@@ -63,7 +106,7 @@ export const animations = {
     initial: { opacity: 0, x: 100 },
     animate: { opacity: 1, x: 0 },
     exit: { opacity: 0, x: 100 },
-    transition: { duration: 0.3 },
+    transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] },
   },
 
   // Slide in from left
@@ -71,12 +114,79 @@ export const animations = {
     initial: { opacity: 0, x: -100 },
     animate: { opacity: 1, x: 0 },
     exit: { opacity: 0, x: -100 },
-    transition: { duration: 0.3 },
+    transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] },
   },
 
   // Spring animation (for interactive elements)
   spring: {
     transition: { type: "spring", stiffness: 300, damping: 30 },
+  },
+
+  // Stagger children (for lists)
+  staggerContainer: {
+    animate: {
+      transition: {
+        staggerChildren: 0.05,
+      },
+    },
+  },
+
+  // Stagger item (child of staggerContainer)
+  staggerItem: {
+    initial: { opacity: 0, y: 10 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] },
+  },
+};
+
+/**
+ * Hover animation variants for interactive elements
+ */
+export const hoverAnimations = {
+  // Button hover - scale up slightly
+  button: {
+    scale: 1.02,
+    transition: { duration: 0.2 },
+  },
+
+  // Card hover - lift effect
+  card: {
+    y: -4,
+    scale: 1.01,
+    transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] },
+  },
+
+  // Icon button - scale and rotate
+  iconButton: {
+    scale: 1.1,
+    rotate: 5,
+    transition: { duration: 0.2 },
+  },
+
+  // Link hover - slight scale
+  link: {
+    scale: 1.05,
+    transition: { duration: 0.15 },
+  },
+};
+
+/**
+ * Tap animation variants
+ */
+export const tapAnimations = {
+  // Button tap - scale down
+  button: {
+    scale: 0.98,
+  },
+
+  // Icon button - scale down more
+  iconButton: {
+    scale: 0.9,
+  },
+
+  // Card tap - subtle scale
+  card: {
+    scale: 0.99,
   },
 };
 

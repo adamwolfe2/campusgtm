@@ -19,11 +19,12 @@ import {
   ArrowRight,
   Sparkles,
   Clock,
-  Loader2,
   Building2,
   ExternalLink,
 } from "lucide-react";
 import { getWorkspaces, type WorkspaceWithModules } from "@/lib/database/workspace-service";
+import { WorkspaceGridSkeleton } from "@/components/loading-skeletons";
+import { hoverAnimations, tapAnimations } from "@/lib/design-system";
 import { toast } from "sonner";
 
 export default function WorkspacesPage() {
@@ -77,11 +78,7 @@ export default function WorkspacesPage() {
         </div>
 
         {/* Loading State */}
-        {isLoading && (
-          <div className="flex min-h-[400px] items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        )}
+        {isLoading && <WorkspaceGridSkeleton count={6} />}
 
         {/* Empty State */}
         {!isLoading && !hasWorkspaces && (
@@ -117,10 +114,12 @@ export default function WorkspacesPage() {
                 key={workspace.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
+                whileHover={hoverAnimations.card}
+                whileTap={tapAnimations.card}
                 transition={{ delay: index * 0.05 }}
               >
                 <Card
-                  className="group cursor-pointer transition-all hover:border-primary hover:shadow-lg"
+                  className="group cursor-pointer transition-all hover:border-primary"
                   onClick={() => router.push(`/workspace/${workspace.id}`)}
                 >
                   <CardHeader>

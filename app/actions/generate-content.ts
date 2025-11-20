@@ -1,19 +1,22 @@
 "use server";
 
 import { generateAIText } from "@/lib/ai/service";
-import { AIProviderConfig } from "@/types/ai";
-
-// Default provider config - in a real app, this might come from user settings or env vars
-const defaultProviderConfig: AIProviderConfig = {
-    provider: "google", // Default to Gemini as requested
-    model: "gemini-1.5-flash-latest",
-    apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY || "",
-    enabled: true,
-};
+import { getServerAIConfig } from "@/lib/ai/config";
 
 export async function generateContentAction(prompt: string) {
     if (!prompt) {
         throw new Error("Prompt is required");
+    }
+
+    // Use the same AI config as the rest of the app (Anthropic by default)
+    const aiConfig = getServerAIConfig();
+
+    if (!aiConfig) {
+        console.error("[generateContent] No AI provider configured");
+        return {
+            success: false,
+            error: "AI provider not configured. Please check your API keys in Settings."
+        };
     }
 
     try {
@@ -24,12 +27,15 @@ export async function generateContentAction(prompt: string) {
                 temperature: 0.7,
                 maxTokens: 2000,
             },
-            defaultProviderConfig
+            aiConfig
         );
 
         return { success: true, content: response.content };
     } catch (error) {
-        console.error("AI Generation Error:", error);
-        return { success: false, error: "Failed to generate content" };
+        console.error("[generateContent] AI Generation Error:", error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Failed to generate content"
+        };
     }
 }

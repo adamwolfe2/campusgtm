@@ -144,7 +144,7 @@ export function JournalModal() {
           <motion.div
             key="modal"
             {...animations.slideInLeft}
-            className="flex h-[500px] w-[400px] flex-col rounded-2xl bg-white shadow-2xl dark:bg-gray-900 border border-gray-200 dark:border-gray-800"
+            className={cn("flex h-[500px] w-[400px] flex-col rounded-2xl shadow-2xl", glass.strong)}
           >
             {/* Header */}
             <div className="flex items-center justify-between border-b border-white/10 p-4">

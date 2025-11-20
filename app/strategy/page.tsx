@@ -11,7 +11,6 @@ import { motion } from "framer-motion";
 import {
   MessageSquare,
   Plus,
-  Loader2,
   Building2,
   Users,
   Calendar,
@@ -21,6 +20,7 @@ import {
 import { getWorkspaces } from "@/lib/database/workspace-service";
 import { StrategyModuleType } from "@/types";
 import type { StrategyModule } from "@/types";
+import { ModuleListSkeleton } from "@/components/loading-skeletons";
 import { toast } from "sonner";
 import {
   Card,
@@ -144,11 +144,7 @@ export default function StrategyModulesPage() {
         </div>
 
         {/* Loading State */}
-        {isLoading && (
-          <div className="flex min-h-[400px] items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        )}
+        {isLoading && <ModuleListSkeleton count={6} />}
 
         {/* Empty State */}
         {!isLoading && !hasModules && (

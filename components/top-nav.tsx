@@ -4,6 +4,7 @@ import { Search, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NotificationsDropdown } from "@/components/notifications-dropdown";
 import { UserProfileDropdown } from "@/components/user-profile-dropdown";
+import { glass } from "@/lib/design-system";
 import { cn } from "@/lib/utils";
 
 interface TopNavProps {
@@ -15,7 +16,8 @@ export function TopNav({ className, onMobileMenuClick }: TopNavProps) {
   return (
     <header
       className={cn(
-        "flex h-16 items-center justify-between border-b bg-card px-4 md:px-6",
+        "flex h-16 items-center justify-between border-b px-4 md:px-6",
+        glass.strong,
         className
       )}
       role="banner"

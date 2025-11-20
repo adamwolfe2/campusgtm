@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { AIProviderSettings } from "@/components/ai-provider-settings";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -174,6 +175,15 @@ export default function SettingsPage() {
                       Email is managed by your authentication provider
                     </p>
                   </div>
+
+                  <Separator />
+
+                  {/* Theme Toggle */}
+                  <div>
+                    <Label className="text-sm font-medium mb-3 block">Appearance</Label>
+                    <ThemeToggle />
+                  </div>
+
                   <div className="flex justify-end">
                     <Button onClick={handleSaveProfile} className="gap-2">
                       <Save className="h-4 w-4" />
