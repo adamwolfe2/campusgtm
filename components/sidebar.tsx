@@ -14,6 +14,9 @@ import {
   ChevronRight,
   Sparkles,
   X,
+  Target,
+  Search,
+  TrendingUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -51,6 +54,19 @@ const navigationItems = [
     title: "Strategy Modules",
     href: "/strategy",
     icon: MessageSquare,
+  },
+] as const;
+
+const intelligenceItems = [
+  {
+    title: "Keyword Monitoring",
+    href: "/dashboard/intelligence/keywords",
+    icon: Search,
+  },
+  {
+    title: "Community Finder",
+    href: "/dashboard/intelligence/communities",
+    icon: Target,
   },
 ] as const;
 
@@ -133,6 +149,36 @@ export function Sidebar({ className, isMobileOpen = false, onMobileClose }: Side
             </Link>
           ))}
         </div>
+
+        {/* Intelligence Section */}
+        <div className="mt-6">
+          {!isCollapsed && (
+            <div className="px-3 mb-2">
+              <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                <TrendingUp className="h-4 w-4" aria-hidden="true" />
+                <span>Intelligence</span>
+              </div>
+            </div>
+          )}
+          <div className="flex flex-col gap-1">
+            {intelligenceItems.map((item) => (
+              <Link key={item.href} href={item.href} onClick={onMobileClose}>
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start gap-3 min-h-[44px]",
+                    isCollapsed && "justify-center"
+                  )}
+                  title={isCollapsed ? item.title : undefined}
+                  aria-label={item.title}
+                >
+                  <item.icon className="h-5 w-5 shrink-0" aria-hidden="true" />
+                  {!isCollapsed && <span>{item.title}</span>}
+                </Button>
+              </Link>
+            ))}
+          </div>
+        </div>
       </nav>
 
       <Separator />
@@ -201,7 +247,7 @@ export function Sidebar({ className, isMobileOpen = false, onMobileClose }: Side
               initial="hidden"
               animate="visible"
               exit="hidden"
-              className={cn("fixed left-0 top-0 bottom-0 z-[1101] flex w-[280px] flex-col border-r shadow-2xl md:hidden", glass.strong)}
+              className={cn("fixed left-0 top-0 bottom-0 z-[1101] flex w-[280px] flex-col border-r shadow-2xl bg-card md:hidden")}
               role="dialog"
               aria-label="Navigation menu"
               aria-modal="true"
