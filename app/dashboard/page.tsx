@@ -29,6 +29,7 @@ import { WorkspaceGridSkeleton } from "@/components/loading-skeletons";
 import { glass, animations, gradients, hoverAnimations, tapAnimations } from "@/lib/design-system";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { ensureWelcomeNotification } from "@/app/actions/notifications";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -43,6 +44,11 @@ export default function DashboardPage() {
         setIsLoading(true);
         const loadedWorkspaces = await getWorkspaces(user?.id);
         setWorkspaces(loadedWorkspaces);
+
+        // Send welcome notification if this is a new user
+        if (user?.id) {
+          await ensureWelcomeNotification(user.id);
+        }
       } catch (err) {
         console.error("Failed to load workspaces:", err);
         toast.error(

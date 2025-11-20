@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useUser } from "@clerk/nextjs";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,46 +13,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Bell, Sparkles, FileText, Users, Settings } from "lucide-react";
+import { Bell, Sparkles, FileText, Users, Settings, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  getNotifications,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+  type Notification,
+  type NotificationType,
+} from "@/lib/database/notification-service";
 
-interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  timestamp: Date;
-  read: boolean;
-  type: "strategy" | "workspace" | "team" | "system";
-}
-
-const MOCK_NOTIFICATIONS: Notification[] = [
-  {
-    id: "1",
-    title: "Strategy Generated",
-    message: "Your GTM strategy for Acme Corp has been generated successfully",
-    timestamp: new Date(Date.now() - 1000 * 60 * 5), // 5 minutes ago
-    read: false,
-    type: "strategy",
-  },
-  {
-    id: "2",
-    title: "Workspace Created",
-    message: "New workspace 'Acme Corp GTM Strategy' has been created",
-    timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-    read: false,
-    type: "workspace",
-  },
-  {
-    id: "3",
-    title: "Welcome to Campus GTM",
-    message: "Get started by creating your first GTM strategy workspace",
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-    read: true,
-    type: "system",
-  },
-];
-
-const getNotificationIcon = (type: Notification["type"]) => {
+const getNotificationIcon = (type: NotificationType) => {
   switch (type) {
     case "strategy":
       return <Sparkles className="h-4 w-4 text-primary" />;
@@ -80,17 +52,66 @@ const formatTimestamp = (date: Date) => {
 };
 
 export function NotificationsDropdown() {
-  const [notifications, setNotifications] = useState<Notification[]>(MOCK_NOTIFICATIONS);
+  const { user } = useUser();
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  const markAsRead = (id: string) => {
+  // Fetch notifications on mount and when user changes
+  useEffect(() => {
+    if (!user?.id) {
+      setIsLoading(false);
+      return;
+    }
+
+    async function fetchNotifications() {
+      setIsLoading(true);
+      try {
+        const data = await getNotifications(user.id);
+        setNotifications(data);
+      } catch (error) {
+        console.error("Failed to fetch notifications:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchNotifications();
+  }, [user?.id]);
+
+  const handleMarkAsRead = async (id: string) => {
+    if (!user?.id) return;
+
+    // Optimistic update
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, read: true } : n))
     );
+
+    try {
+      await markNotificationAsRead(id, user.id);
+    } catch (error) {
+      console.error("Failed to mark notification as read:", error);
+      // Revert on error
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, read: false } : n))
+      );
+    }
   };
 
-  const markAllAsRead = () => {
+  const handleMarkAllAsRead = async () => {
+    if (!user?.id) return;
+
+    // Optimistic update
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+
+    try {
+      await markAllNotificationsAsRead(user.id);
+    } catch (error) {
+      console.error("Failed to mark all notifications as read:", error);
+      // Reload notifications on error
+      const data = await getNotifications(user.id);
+      setNotifications(data);
+    }
   };
 
   return (
@@ -120,19 +141,24 @@ export function NotificationsDropdown() {
       <DropdownMenuContent align="end" className="w-[380px]">
         <DropdownMenuLabel className="flex items-center justify-between">
           <span>Notifications</span>
-          {unreadCount > 0 && (
+          {unreadCount > 0 && !isLoading && (
             <Button
               variant="ghost"
               size="sm"
               className="h-auto p-0 text-xs text-primary hover:text-primary hover:bg-transparent"
-              onClick={markAllAsRead}
+              onClick={handleMarkAllAsRead}
             >
               Mark all as read
             </Button>
           )}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {notifications.length === 0 ? (
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <Loader2 className="mb-2 h-8 w-8 text-muted-foreground animate-spin" />
+            <p className="text-sm text-muted-foreground">Loading notifications...</p>
+          </div>
+        ) : notifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <Bell className="mb-2 h-8 w-8 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">No notifications yet</p>
@@ -146,7 +172,7 @@ export function NotificationsDropdown() {
                   "flex cursor-pointer flex-col items-start gap-2 p-4",
                   !notification.read && "bg-primary/5"
                 )}
-                onClick={() => markAsRead(notification.id)}
+                onClick={() => handleMarkAsRead(notification.id)}
               >
                 <div className="flex w-full items-start gap-3">
                   <div className="mt-0.5">{getNotificationIcon(notification.type)}</div>
@@ -163,7 +189,7 @@ export function NotificationsDropdown() {
                       {notification.message}
                     </p>
                     <p className="mt-1.5 text-xs text-muted-foreground">
-                      {formatTimestamp(notification.timestamp)}
+                      {formatTimestamp(notification.createdAt)}
                     </p>
                   </div>
                 </div>

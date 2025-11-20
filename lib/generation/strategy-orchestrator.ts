@@ -19,6 +19,10 @@ import {
   getWorkspace,
   type WorkspaceWithModules,
 } from "@/lib/database/workspace-service";
+import {
+  notifyWorkspaceCreated,
+  notifyStrategyGenerated,
+} from "@/lib/database/notification-service";
 
 export interface StrategyGenerationResult {
   workspace: WorkspaceWithModules;
@@ -83,6 +87,11 @@ export async function generateCompleteStrategy(
     userId
   );
 
+  // Notify user about workspace creation
+  if (userId) {
+    await notifyWorkspaceCreated(userId, workspace.name);
+  }
+
   // Store onboarding data and strategy in workspace
   await storeOnboardingData(workspace.id, onboardingData, userId);
   await storeGeneratedStrategy(workspace.id, strategy, userId);
@@ -95,6 +104,11 @@ export async function generateCompleteStrategy(
 
   if (!updatedWorkspace) {
     throw new Error("Failed to retrieve created workspace");
+  }
+
+  // Notify user about strategy generation
+  if (userId) {
+    await notifyStrategyGenerated(userId, companyName);
   }
 
   return {
