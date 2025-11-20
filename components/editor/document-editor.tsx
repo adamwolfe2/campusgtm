@@ -16,6 +16,9 @@ import { cn } from "@/lib/utils";
 import { AIInputDialog } from "./ai-input-dialog";
 import { generateContentAction } from "@/app/actions/generate-content";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Undo2, Redo2, Bold, Italic, List, ListOrdered, Heading1, Heading2, Heading3, Code } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 interface DocumentEditorProps {
   content?: string;
@@ -222,15 +225,158 @@ export function DocumentEditor({
     };
   }, [editor]);
 
+  if (!editor) {
+    return null;
+  }
+
   return (
     <div
       className={cn(
-        "w-full rounded-lg border bg-background p-8 relative",
+        "w-full rounded-lg border bg-background relative",
         !editable && "cursor-default",
         className
       )}
     >
-      <EditorContent editor={editor} />
+      {/* Toolbar */}
+      {editable && (
+        <div className="border-b p-2 flex items-center gap-1 flex-wrap">
+          {/* History Controls */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => editor.chain().focus().undo().run()}
+            disabled={!editor.can().undo()}
+            className="h-8 w-8 p-0"
+            title="Undo (⌘Z)"
+          >
+            <Undo2 className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => editor.chain().focus().redo().run()}
+            disabled={!editor.can().redo()}
+            className="h-8 w-8 p-0"
+            title="Redo (⌘⇧Z)"
+          >
+            <Redo2 className="h-4 w-4" />
+          </Button>
+
+          <Separator orientation="vertical" className="h-6 mx-1" />
+
+          {/* Text Formatting */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => editor.chain().focus().toggleBold().run()}
+            className={cn(
+              "h-8 w-8 p-0",
+              editor.isActive("bold") && "bg-accent"
+            )}
+            title="Bold (⌘B)"
+          >
+            <Bold className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => editor.chain().focus().toggleItalic().run()}
+            className={cn(
+              "h-8 w-8 p-0",
+              editor.isActive("italic") && "bg-accent"
+            )}
+            title="Italic (⌘I)"
+          >
+            <Italic className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => editor.chain().focus().toggleCode().run()}
+            className={cn(
+              "h-8 w-8 p-0",
+              editor.isActive("code") && "bg-accent"
+            )}
+            title="Code (⌘E)"
+          >
+            <Code className="h-4 w-4" />
+          </Button>
+
+          <Separator orientation="vertical" className="h-6 mx-1" />
+
+          {/* Headings */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+            className={cn(
+              "h-8 w-8 p-0",
+              editor.isActive("heading", { level: 1 }) && "bg-accent"
+            )}
+            title="Heading 1"
+          >
+            <Heading1 className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+            className={cn(
+              "h-8 w-8 p-0",
+              editor.isActive("heading", { level: 2 }) && "bg-accent"
+            )}
+            title="Heading 2"
+          >
+            <Heading2 className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+            className={cn(
+              "h-8 w-8 p-0",
+              editor.isActive("heading", { level: 3 }) && "bg-accent"
+            )}
+            title="Heading 3"
+          >
+            <Heading3 className="h-4 w-4" />
+          </Button>
+
+          <Separator orientation="vertical" className="h-6 mx-1" />
+
+          {/* Lists */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => editor.chain().focus().toggleBulletList().run()}
+            className={cn(
+              "h-8 w-8 p-0",
+              editor.isActive("bulletList") && "bg-accent"
+            )}
+            title="Bullet List"
+          >
+            <List className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => editor.chain().focus().toggleOrderedList().run()}
+            className={cn(
+              "h-8 w-8 p-0",
+              editor.isActive("orderedList") && "bg-accent"
+            )}
+            title="Numbered List"
+          >
+            <ListOrdered className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
+
+      {/* Editor Content */}
+      <div className="p-8">
+        <EditorContent editor={editor} />
+      </div>
+
       <AIInputDialog
         isOpen={isAIInputOpen}
         onClose={() => setIsAIInputOpen(false)}
