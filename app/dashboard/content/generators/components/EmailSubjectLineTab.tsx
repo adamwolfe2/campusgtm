@@ -12,9 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
 import {
   optimizeSubjectLine,
-  predictPerformance,
   type SubjectLineVariation,
-  type SubjectLinePerformance,
 } from "@/app/actions/generate-subject-lines";
 
 export function EmailSubjectLineTab() {

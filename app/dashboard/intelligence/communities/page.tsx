@@ -12,7 +12,6 @@ import {
   Briefcase,
   Building2,
   Heart,
-  CheckCircle2,
   AlertCircle,
   Sparkles,
 } from "lucide-react";

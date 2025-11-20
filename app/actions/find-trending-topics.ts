@@ -246,7 +246,6 @@ Respond in JSON format:
       model,
       prompt,
       temperature: 0.5,
-      maxTokens: 1500,
     });
 
     // Parse JSON response
@@ -406,7 +405,6 @@ Respond in JSON format:
       model,
       prompt,
       temperature: 0.7,
-      maxTokens: 600,
     });
 
     // Parse JSON response

@@ -104,7 +104,6 @@ Make subject lines specific to the topic and audience, not generic templates.`;
         systemPrompt,
         schema: SubjectLineOptimizerSchema,
         temperature: 0.8,
-        maxTokens: 2500,
       },
       aiConfig
     );
@@ -182,7 +181,6 @@ Provide:
         systemPrompt,
         schema: SubjectLinePerformanceSchema,
         temperature: 0.4,
-        maxTokens: 500,
       },
       aiConfig
     );

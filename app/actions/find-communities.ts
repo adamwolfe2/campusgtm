@@ -289,7 +289,6 @@ Keep it concise and actionable.`;
       model,
       prompt,
       temperature: 0.7,
-      maxTokens: 200,
     });
 
     return result.text.trim();

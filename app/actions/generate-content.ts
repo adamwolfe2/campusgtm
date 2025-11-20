@@ -25,7 +25,6 @@ export async function generateContentAction(prompt: string) {
                 prompt,
                 systemPrompt: "You are a helpful AI writing assistant embedded in a Notion-style editor. Your goal is to help the user write content. Output ONLY the requested content, formatted in Markdown. Do not include conversational filler like 'Here is the content'. Use headings, lists, and bold text where appropriate.",
                 temperature: 0.7,
-                maxTokens: 2000,
             },
             aiConfig
         );

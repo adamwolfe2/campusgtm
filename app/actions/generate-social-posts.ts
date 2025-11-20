@@ -123,7 +123,6 @@ Make the content specific, engaging, and authentic. Avoid generic corporate spea
         systemPrompt,
         schema: SocialPostGeneratorSchema,
         temperature: 0.8,
-        maxTokens: 2000,
       },
       aiConfig
     );
@@ -208,7 +207,6 @@ Each post/slide should:
         systemPrompt,
         schema: ThreadCarouselSchema,
         temperature: 0.8,
-        maxTokens: 3000,
       },
       aiConfig
     );

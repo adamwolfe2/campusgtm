@@ -147,7 +147,6 @@ Word count must be between 150-200 words for the body.`;
         systemPrompt,
         schema: ColdEmailGeneratorSchema,
         temperature: 0.8,
-        maxTokens: 2000,
       },
       aiConfig
     );
@@ -237,7 +236,6 @@ Include exact character count.`;
         systemPrompt,
         schema: DMScriptSchema,
         temperature: 0.8,
-        maxTokens: 800,
       },
       aiConfig
     );
@@ -323,7 +321,6 @@ Explain:
         systemPrompt,
         schema: CommentReplySchema,
         temperature: 0.8,
-        maxTokens: 600,
       },
       aiConfig
     );

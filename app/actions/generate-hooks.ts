@@ -186,7 +186,6 @@ Make hooks specific to the topic and audience, not generic templates.`;
         systemPrompt,
         schema: HookGeneratorSchema,
         temperature: 0.8,
-        maxTokens: 3500,
       },
       aiConfig
     );
@@ -259,7 +258,6 @@ Be honest and specific. Provide actionable feedback.`;
         systemPrompt,
         schema: HookAnalysisSchema,
         temperature: 0.4,
-        maxTokens: 800,
       },
       aiConfig
     );

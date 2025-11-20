@@ -78,7 +78,7 @@ export async function monitorKeyword(
 
       mentions.push({
         platform: 'hackernews',
-        url: story.url,
+        url: story.url || `https://news.ycombinator.com/item?id=${story.objectID}`,
         title: story.title,
         content: story.story_text || '',
         author: story.author,

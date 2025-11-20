@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { motion } from "framer-motion";
+import ReactMarkdown from "react-markdown";
 import {
   FileText,
   Calendar,
@@ -10,7 +11,6 @@ import {
   Search,
   Zap,
   RefreshCw,
-  Download,
   Mail,
   ChevronLeft,
   ChevronRight,
@@ -21,7 +21,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import {
   Select,
   SelectContent,
@@ -35,7 +34,6 @@ import {
   exportDigestEmail,
   type WeeklyDigest,
 } from "@/app/actions/weekly-digest";
-import ReactMarkdown from "react-markdown";
 
 export default function WeeklyDigestPage() {
   const [digest, setDigest] = React.useState<WeeklyDigest | null>(null);
