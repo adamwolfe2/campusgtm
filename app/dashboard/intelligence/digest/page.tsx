@@ -34,12 +34,20 @@ import {
   exportDigestEmail,
   type WeeklyDigest,
 } from "@/app/actions/weekly-digest";
+import { sendWeeklyDigestEmail } from "@/app/actions/send-email";
+import { exportWeeklyDigestCSV } from "@/app/actions/export-data";
+import { downloadCSV, downloadHTML } from "@/lib/utils/download";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 
 export default function WeeklyDigestPage() {
   const [digest, setDigest] = React.useState<WeeklyDigest | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [generating, setGenerating] = React.useState(false);
   const [weekOffset, setWeekOffset] = React.useState(0); // 0 = current week, -1 = last week
+  const [sendingEmail, setSendingEmail] = React.useState(false);
+  const [emailRecipient, setEmailRecipient] = React.useState("");
+  const [showEmailInput, setShowEmailInput] = React.useState(false);
 
   // Load digest on mount and when week changes
   React.useEffect(() => {
@@ -71,17 +79,51 @@ export default function WeeklyDigestPage() {
 
     try {
       const html = await exportDigestEmail(digest);
-
-      // Create a blob and download
-      const blob = new Blob([html], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `weekly-digest-${digest.weekStart.toISOString().split('T')[0]}.html`;
-      a.click();
-      URL.revokeObjectURL(url);
+      const filename = `weekly-digest-${digest.weekStart.toISOString().split('T')[0]}`;
+      downloadHTML(html, filename);
+      toast.success('Email HTML exported successfully');
     } catch (error) {
       console.error('Failed to export email:', error);
+      toast.error('Failed to export email HTML');
+    }
+  };
+
+  const handleExportCSV = async () => {
+    if (!digest) return;
+
+    try {
+      const csv = await exportWeeklyDigestCSV(digest);
+      const filename = `weekly-digest-${digest.weekStart.toISOString().split('T')[0]}`;
+      downloadCSV(csv, filename);
+      toast.success('Digest exported to CSV');
+    } catch (error) {
+      console.error('Failed to export CSV:', error);
+      toast.error('Failed to export CSV');
+    }
+  };
+
+  const handleSendEmail = async () => {
+    if (!digest || !emailRecipient.trim()) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+
+    setSendingEmail(true);
+    try {
+      const result = await sendWeeklyDigestEmail(emailRecipient, digest);
+
+      if (result.success) {
+        toast.success(result.message);
+        setEmailRecipient("");
+        setShowEmailInput(false);
+      } else {
+        toast.error(result.message);
+      }
+    } catch (error) {
+      console.error('Failed to send email:', error);
+      toast.error('Failed to send email');
+    } finally {
+      setSendingEmail(false);
     }
   };
 
@@ -174,10 +216,26 @@ export default function WeeklyDigestPage() {
               <Button
                 variant="outline"
                 size="sm"
+                onClick={handleExportCSV}
+              >
+                <FileText className="mr-2 h-4 w-4" />
+                Export CSV
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={handleExportEmail}
               >
+                <FileText className="mr-2 h-4 w-4" />
+                Download HTML
+              </Button>
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => setShowEmailInput(!showEmailInput)}
+              >
                 <Mail className="mr-2 h-4 w-4" />
-                Export Email
+                Send Email
               </Button>
             </div>
           </div>
@@ -189,6 +247,51 @@ export default function WeeklyDigestPage() {
             </p>
           </div>
         </div>
+
+        {/* Email Input Section */}
+        {showEmailInput && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mt-4 flex gap-2"
+          >
+            <Input
+              type="email"
+              placeholder="Enter email address"
+              value={emailRecipient}
+              onChange={(e) => setEmailRecipient(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSendEmail()}
+              className="max-w-sm"
+            />
+            <Button
+              onClick={handleSendEmail}
+              disabled={sendingEmail || !emailRecipient.trim()}
+            >
+              {sendingEmail ? (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <Mail className="mr-2 h-4 w-4" />
+                  Send
+                </>
+              )}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setShowEmailInput(false);
+                setEmailRecipient("");
+              }}
+            >
+              Cancel
+            </Button>
+          </motion.div>
+        )}
       </motion.div>
 
       {/* Metrics Grid */}

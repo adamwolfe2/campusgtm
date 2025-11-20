@@ -26,6 +26,10 @@ import {
   ActionType,
   ActionPriority,
 } from "@/app/actions/daily-actions";
+import { exportDailyActionsCSV } from "@/app/actions/export-data";
+import { downloadCSV } from "@/lib/utils/download";
+import { Download } from "lucide-react";
+import { toast } from "sonner";
 
 const actionTypeIcons = {
   engage_thread: MessageSquare,
@@ -75,6 +79,22 @@ export default function DailyActionsPage() {
     setRegenerating(true);
     await loadActions();
     setRegenerating(false);
+  };
+
+  const handleExportCSV = async () => {
+    if (actions.length === 0) {
+      toast.error("No actions to export");
+      return;
+    }
+
+    try {
+      const csv = await exportDailyActionsCSV(actions);
+      const filename = `daily-actions-${new Date().toISOString().split('T')[0]}`;
+      downloadCSV(csv, filename);
+      toast.success(`Exported ${actions.length} actions to CSV`);
+    } catch (error) {
+      toast.error("Failed to export CSV");
+    }
   };
 
   const toggleComplete = (actionId: string) => {
@@ -128,24 +148,35 @@ export default function DailyActionsPage() {
               <h1 className="text-3xl font-bold tracking-tight">Your Daily GTM Actions</h1>
               <p className="text-muted-foreground mt-1">{today}</p>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRegenerate}
-              disabled={regenerating}
-            >
-              {regenerating ? (
-                <>
-                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                  Regenerating...
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Regenerate
-                </>
-              )}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRegenerate}
+                disabled={regenerating}
+              >
+                {regenerating ? (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                    Regenerating...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Regenerate
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportCSV}
+                disabled={actions.length === 0}
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Export CSV
+              </Button>
+            </div>
           </div>
         </div>
       </motion.div>

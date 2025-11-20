@@ -19,6 +19,9 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { monitorKeyword } from "@/app/actions/monitor-keywords";
 import { toast } from "@/hooks/use-toast";
+import { exportKeywordMentionsCSV } from "@/app/actions/export-data";
+import { downloadCSV } from "@/lib/utils/download";
+import { Download } from "lucide-react";
 
 interface KeywordMention {
   platform: string;
@@ -76,6 +79,33 @@ export default function KeywordMonitoringPage() {
       title: "Copied to clipboard",
       description: "Reply copied successfully",
     });
+  };
+
+  const handleExportCSV = async () => {
+    if (mentions.length === 0) {
+      toast({
+        title: "No data to export",
+        description: "Search for keywords first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const csv = await exportKeywordMentionsCSV(mentions);
+      const filename = `keyword-mentions-${keyword.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}`;
+      downloadCSV(csv, filename);
+      toast({
+        title: "Export successful",
+        description: `Exported ${mentions.length} mentions to CSV`,
+      });
+    } catch (error) {
+      toast({
+        title: "Export failed",
+        description: "Failed to export CSV",
+        variant: "destructive",
+      });
+    }
   };
 
   const highPriorityMentions = mentions.filter(
@@ -143,7 +173,14 @@ export default function KeywordMonitoringPage() {
 
       {/* Results Stats */}
       {mentions.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <>
+          <div className="flex justify-end mb-4">
+            <Button onClick={handleExportCSV} variant="outline" size="sm">
+              <Download className="mr-2 h-4 w-4" />
+              Export CSV
+            </Button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <Card className="p-4">
             <div className="flex items-center gap-3">
               <div className="p-3 rounded-full bg-red-500/10 text-red-500">
@@ -180,6 +217,7 @@ export default function KeywordMonitoringPage() {
             </div>
           </Card>
         </div>
+        </>
       )}
 
       {/* Results Tabs */}

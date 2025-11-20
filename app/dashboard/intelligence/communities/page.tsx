@@ -22,6 +22,9 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { findCommunitiesForICP, quickFindCommunities, type CommunityResult } from "@/app/actions/find-communities";
 import { toast } from "@/hooks/use-toast";
+import { exportCommunitiesCSV } from "@/app/actions/export-data";
+import { downloadCSV } from "@/lib/utils/download";
+import { Download } from "lucide-react";
 
 export default function CommunityFinderPage() {
   const [communities, setCommunities] = useState<CommunityResult[]>([]);
@@ -106,6 +109,33 @@ export default function CommunityFinderPage() {
       });
     } finally {
       setIsSearching(false);
+    }
+  };
+
+  const handleExportCSV = async () => {
+    if (communities.length === 0) {
+      toast({
+        title: "No data to export",
+        description: "Search for communities first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const csv = await exportCommunitiesCSV(communities);
+      const filename = `communities-${new Date().toISOString().split('T')[0]}`;
+      downloadCSV(csv, filename);
+      toast({
+        title: "Export successful",
+        description: `Exported ${communities.length} communities to CSV`,
+      });
+    } catch (error) {
+      toast({
+        title: "Export failed",
+        description: "Failed to export CSV",
+        variant: "destructive",
+      });
     }
   };
 
@@ -280,7 +310,14 @@ export default function CommunityFinderPage() {
 
       {/* Results Stats */}
       {communities.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <>
+          <div className="flex justify-end mb-4">
+            <Button onClick={handleExportCSV} variant="outline" size="sm">
+              <Download className="mr-2 h-4 w-4" />
+              Export CSV
+            </Button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <Card className="p-4">
             <div className="flex items-center gap-3">
               <div className="p-3 rounded-full bg-orange-500/10 text-orange-500">
@@ -329,6 +366,7 @@ export default function CommunityFinderPage() {
             </div>
           </Card>
         </div>
+        </>
       )}
 
       {/* Results */}
