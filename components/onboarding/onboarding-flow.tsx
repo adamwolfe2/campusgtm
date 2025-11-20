@@ -46,6 +46,25 @@ export function OnboardingFlow({
   const [isExtracting, setIsExtracting] = React.useState(false);
   const [_extractedInsights, setExtractedInsights] = React.useState<ExtractedInsights | null>(null);
   const [error, setError] = React.useState<string>();
+  const [validationError, setValidationError] = React.useState<string>();
+  const [isValid, setIsValid] = React.useState(false);
+
+  // Real-time validation with debouncing
+  React.useEffect(() => {
+    if (!currentQuestion || !currentValue) {
+      setValidationError(undefined);
+      setIsValid(false);
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      const validation = validateAnswer(currentQuestion, currentValue);
+      setValidationError(validation.valid ? undefined : validation.error);
+      setIsValid(validation.valid);
+    }, 300); // Debounce validation
+
+    return () => clearTimeout(timeoutId);
+  }, [currentValue, currentQuestion]);
 
   const currentQuestion = questions[data.currentStep];
   const progress = calculateProgress(data, questions.length);
@@ -333,17 +352,19 @@ export function OnboardingFlow({
                 }));
                 setCurrentValue("uploaded");
               }}
+              error={validationError}
+              isValid={isValid}
             />
           </div>
 
           {/* Error */}
-          {error && (
+          {(error || validationError) && (
             <motion.p
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               className="mt-2 text-sm text-destructive"
             >
-              {error}
+              {error || validationError}
             </motion.p>
           )}
 
@@ -395,6 +416,8 @@ interface QuestionInputProps {
   onChange: (value: string | string[]) => void;
   onKeyDown?: (e: React.KeyboardEvent) => void;
   onFilesProcessed?: (documents: ParsedDocument[]) => void;
+  error?: string;
+  isValid?: boolean;
 }
 
 function QuestionInput({
@@ -403,31 +426,103 @@ function QuestionInput({
   onChange,
   onKeyDown,
   onFilesProcessed,
+  error,
+  isValid,
 }: QuestionInputProps) {
+  // Character count for text inputs
+  const stringValue = typeof value === 'string' ? value : '';
+  const charCount = stringValue.length;
+  const maxChars = question.validation?.maxLength || 500;
+  const minChars = question.validation?.minLength || 0;
+  const showCharCount = question.type === QType.TEXT || question.type === QType.TEXTAREA;
+
   switch (question.type) {
     case QType.TEXT:
     case QType.URL:
       return (
-        <Input
-          value={value as string}
-          onChange={(e) => onChange(e.target.value)}
-          onKeyDown={onKeyDown}
-          placeholder={question.placeholder}
-          autoFocus
-          className="h-12 text-lg"
-        />
+        <div className="space-y-2">
+          <div className="relative">
+            <Input
+              value={value as string}
+              onChange={(e) => onChange(e.target.value)}
+              onKeyDown={onKeyDown}
+              placeholder={question.placeholder}
+              autoFocus
+              className={cn(
+                "h-12 text-lg transition-colors",
+                error && "border-destructive focus-visible:ring-destructive",
+                isValid && charCount >= minChars && "border-green-500 focus-visible:ring-green-500"
+              )}
+            />
+            {isValid && charCount >= minChars && (
+              <Check className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-green-500" />
+            )}
+          </div>
+          {showCharCount && charCount > 0 && (
+            <div className="flex items-center justify-between text-xs">
+              <span className={cn(
+                "text-muted-foreground",
+                charCount < minChars && "text-yellow-600",
+                charCount > maxChars && "text-destructive"
+              )}>
+                {charCount < minChars
+                  ? `${minChars - charCount} more characters needed`
+                  : charCount > maxChars
+                  ? `${charCount - maxChars} characters over limit`
+                  : "Looking good!"
+                }
+              </span>
+              <span className={cn(
+                "font-mono",
+                charCount > maxChars ? "text-destructive" : "text-muted-foreground"
+              )}>
+                {charCount}/{maxChars}
+              </span>
+            </div>
+          )}
+        </div>
       );
 
     case QType.TEXTAREA:
       return (
-        <textarea
-          value={value as string}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={question.placeholder}
-          autoFocus
-          rows={5}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-lg ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-        />
+        <div className="space-y-2">
+          <div className="relative">
+            <textarea
+              value={value as string}
+              onChange={(e) => onChange(e.target.value)}
+              placeholder={question.placeholder}
+              autoFocus
+              rows={5}
+              className={cn(
+                "w-full rounded-md border border-input bg-background px-3 py-2 text-lg ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-colors",
+                error && "border-destructive focus-visible:ring-destructive",
+                isValid && charCount >= minChars && "border-green-500 focus-visible:ring-green-500"
+              )}
+            />
+          </div>
+          {showCharCount && charCount > 0 && (
+            <div className="flex items-center justify-between text-xs">
+              <span className={cn(
+                "text-muted-foreground",
+                charCount < minChars && "text-yellow-600",
+                charCount > maxChars && "text-destructive"
+              )}>
+                {charCount < minChars
+                  ? `${minChars - charCount} more characters needed`
+                  : charCount > maxChars
+                  ? `${charCount - maxChars} characters over limit`
+                  : "Great detail!"
+                }
+              </span>
+              <span className={cn(
+                "font-mono",
+                charCount > maxChars ? "text-destructive" : "text-muted-foreground"
+              )}>
+                {charCount}/{maxChars}
+              </span>
+            </div>
+          )}
+        </div>
       );
 
     case QType.SELECT:
