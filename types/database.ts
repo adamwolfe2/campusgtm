@@ -37,21 +37,6 @@ export interface AutomationLog {
   executed_at: string;
 }
 
-export interface SavedInfluencer {
-  id: string;
-  workspace_id: string;
-  name: string;
-  handle: string;
-  platform: string;
-  follower_count: number | null;
-  engagement_rate: number | null;
-  brand_fit_score: number | null;
-  outreach_strategy: string | null;
-  outreach_status: 'not_contacted' | 'reached_out' | 'responded' | 'negotiating' | 'active';
-  notes: string | null;
-  created_at: string;
-}
-
 export interface SavedPartnership {
   id: string;
   workspace_id: string;
@@ -76,19 +61,6 @@ export interface SavedEvent {
   relevance_score: number | null;
   recommended_action: string | null;
   attendance_status: 'considering' | 'registered' | 'attended' | 'passed';
-  notes: string | null;
-  created_at: string;
-}
-
-export interface SavedPodcast {
-  id: string;
-  workspace_id: string;
-  name: string;
-  host: string | null;
-  website: string | null;
-  fit_score: number | null;
-  pitch_strategy: string | null;
-  outreach_status: 'not_contacted' | 'pitched' | 'scheduled' | 'published' | 'passed';
   notes: string | null;
   created_at: string;
 }

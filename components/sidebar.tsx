@@ -25,7 +25,6 @@ import {
   Cog,
   Handshake,
   Building2,
-  Mic,
   Lightbulb,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -130,12 +129,7 @@ const contentToolsItems = [
 
 const partnershipItems = [
   {
-    title: "Find Influencers",
-    href: "/dashboard/partnerships/influencers",
-    icon: Users,
-  },
-  {
-    title: "Find Partners",
+    title: "B2B Partnerships",
     href: "/dashboard/partnerships/companies",
     icon: Building2,
   },
@@ -143,14 +137,9 @@ const partnershipItems = [
 
 const opportunitiesItems = [
   {
-    title: "Events",
+    title: "Events & Conferences",
     href: "/dashboard/opportunities/events",
     icon: Calendar,
-  },
-  {
-    title: "Podcasts",
-    href: "/dashboard/opportunities/podcasts",
-    icon: Mic,
   },
 ] as const;
 
