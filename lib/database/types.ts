@@ -238,6 +238,96 @@ export interface Database {
           updated_at?: string;
         };
       };
+      tracking_links: {
+        Row: {
+          id: string;
+          user_id: string;
+          ambassador_program_id: string | null;
+          short_code: string;
+          full_url: string;
+          title: string | null;
+          description: string | null;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          ambassador_program_id?: string | null;
+          short_code: string;
+          full_url: string;
+          title?: string | null;
+          description?: string | null;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          ambassador_program_id?: string | null;
+          short_code?: string;
+          full_url?: string;
+          title?: string | null;
+          description?: string | null;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      link_clicks: {
+        Row: {
+          id: string;
+          link_id: string;
+          ip_address: string | null;
+          user_agent: string | null;
+          referrer: string | null;
+          clicked_at: string;
+        };
+        Insert: {
+          id?: string;
+          link_id: string;
+          ip_address?: string | null;
+          user_agent?: string | null;
+          referrer?: string | null;
+          clicked_at?: string;
+        };
+        Update: {
+          id?: string;
+          link_id?: string;
+          ip_address?: string | null;
+          user_agent?: string | null;
+          referrer?: string | null;
+          clicked_at?: string;
+        };
+      };
+      link_signups: {
+        Row: {
+          id: string;
+          link_id: string;
+          email: string | null;
+          full_name: string | null;
+          metadata: Record<string, unknown> | null;
+          signed_up_at: string;
+        };
+        Insert: {
+          id?: string;
+          link_id: string;
+          email?: string | null;
+          full_name?: string | null;
+          metadata?: Record<string, unknown> | null;
+          signed_up_at?: string;
+        };
+        Update: {
+          id?: string;
+          link_id?: string;
+          email?: string | null;
+          full_name?: string | null;
+          metadata?: Record<string, unknown> | null;
+          signed_up_at?: string;
+        };
+      };
     };
     Views: {
       [_ in never]: never;
