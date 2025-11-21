@@ -20,7 +20,9 @@
     ],
     "paths": {
       "@/*": ["./*"],
-      "@/prompt/*": ["./components/prompt-kit/*"]
+      "@/prompt/*": ["./components/prompt-kit/*"],
+      "@/fancy/*": ["./components/fancy/*"],
+      "@/hooks/fancy/*": ["./hooks/fancy/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

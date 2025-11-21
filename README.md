@@ -20,6 +20,7 @@
 
 - **coss ui** - Modern component library built on Base UI (Cal.com design system)
 - **Prompt Kit** - AI-native components for chat, reasoning, and prompts
+- **Fancy Components** - Motion-based animations and micro-interactions
 - **Tailwind CSS v4** - CSS-first configuration with modern design tokens
 - **Dark Mode** - Full dark mode support across all components
 
@@ -45,6 +46,7 @@
 | **Framework** | Next.js 16 (App Router) |
 | **UI Library** | coss ui (Base UI) |
 | **AI Components** | Prompt Kit |
+| **Animations** | Fancy Components (Motion) |
 | **Styling** | Tailwind CSS v4 |
 | **Database** | Supabase (PostgreSQL) |
 | **Auth** | Clerk |
@@ -127,6 +129,7 @@ campusgtm/
 ├── components/
 │   ├── ui/                  # coss ui components (Base UI)
 │   ├── prompt-kit/          # Prompt Kit AI components
+│   ├── fancy/               # Fancy Components (animations)
 │   ├── editor/              # TipTap editor components
 │   ├── chat-input.tsx       # AI chat components
 │   └── ...
@@ -134,7 +137,9 @@ campusgtm/
 │   ├── database/            # Supabase client & queries
 │   ├── ai/                  # AI provider integrations
 │   └── utils.ts             # Utility functions
-├── hooks/                   # React hooks
+├── hooks/
+│   ├── fancy/               # Fancy Components hooks
+│   └── ...                  # Other React hooks
 ├── actions/                 # Server actions
 └── supabase/               # Database schema & migrations
 ```
@@ -170,6 +175,23 @@ import { PromptInput, ChainOfThought } from "@/components/prompt-kit/..."
 ```
 
 **See:** [PROMPT_KIT_INTEGRATION.md](./PROMPT_KIT_INTEGRATION.md)
+
+### Fancy Components (Animations)
+
+Motion-based animations and micro-interactions:
+
+```tsx
+import ScrambleHover from "@/fancy/text/scramble-hover"
+import Float from "@/fancy/blocks/float"
+
+<Float speed={0.5} amplitude={[10, 30, 30]}>
+  <h1>
+    <ScrambleHover text="Campus GTM" />
+  </h1>
+</Float>
+```
+
+**See:** [UI_LIBRARIES_ANALYSIS.md](./UI_LIBRARIES_ANALYSIS.md)
 
 ---
 
@@ -281,6 +303,8 @@ We welcome contributions! Please see our contributing guidelines.
 
 ## Documentation
 
+- [UI Libraries Analysis](./UI_LIBRARIES_ANALYSIS.md) - Complete guide to all three UI libraries
+- [UI Rebuild Strategy](./UI_REBUILD_STRATEGY.md) - Detailed plan for UI enhancement
 - [COSS UI Migration Guide](./COSS_UI_MIGRATION.md) - Complete coss ui integration details
 - [Prompt Kit Integration](./PROMPT_KIT_INTEGRATION.md) - AI component usage guide
 - [ROADMAP](./ROADMAP.md) - Product roadmap and feature pipeline
