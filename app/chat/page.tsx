@@ -36,7 +36,8 @@ import {
   BookOpen,
   Lightbulb,
   Users,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Copy
 } from "lucide-react"
 
 interface ChatMessage {
