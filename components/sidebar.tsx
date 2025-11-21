@@ -26,6 +26,8 @@ import {
   Handshake,
   Building2,
   Lightbulb,
+  Link2,
+  UserCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -140,6 +142,19 @@ const opportunitiesItems = [
     title: "Events & Conferences",
     href: "/dashboard/opportunities/events",
     icon: Calendar,
+  },
+] as const;
+
+const attributionItems = [
+  {
+    title: "My Performance",
+    href: "/dashboard/ambassador/stats",
+    icon: Link2,
+  },
+  {
+    title: "All Ambassadors",
+    href: "/dashboard/admin/ambassadors",
+    icon: UserCheck,
   },
 ] as const;
 
@@ -325,6 +340,36 @@ export function Sidebar({ className, isMobileOpen = false, onMobileClose }: Side
           )}
           <div className="flex flex-col gap-1">
             {opportunitiesItems.map((item) => (
+              <Link key={item.href} href={item.href} onClick={onMobileClose}>
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start gap-3 min-h-[44px]",
+                    isCollapsed && "justify-center"
+                  )}
+                  title={isCollapsed ? item.title : undefined}
+                  aria-label={item.title}
+                >
+                  <item.icon className="h-5 w-5 shrink-0" aria-hidden="true" />
+                  {!isCollapsed && <span>{item.title}</span>}
+                </Button>
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        {/* Attribution / Ambassador Section */}
+        <div className="mt-6">
+          {!isCollapsed && (
+            <div className="px-3 mb-2">
+              <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                <Link2 className="h-4 w-4" aria-hidden="true" />
+                <span>Attribution</span>
+              </div>
+            </div>
+          )}
+          <div className="flex flex-col gap-1">
+            {attributionItems.map((item) => (
               <Link key={item.href} href={item.href} onClick={onMobileClose}>
                 <Button
                   variant="ghost"
