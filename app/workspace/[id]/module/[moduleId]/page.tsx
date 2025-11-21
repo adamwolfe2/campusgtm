@@ -1,14 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { DocumentEditor } from "@/components/editor/document-editor";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import { ArrowLeft, Save, Loader2, Wifi } from "lucide-react";
 import { getWorkspace, type WorkspaceWithModules } from "@/lib/database/workspace-service";
+import { useRealtimeWorkspaceEvents, useWorkspaceEventListener } from "@/lib/realtime/hooks";
+import { notifyModuleUpdated } from "@/lib/database/workspace-events-service";
 import type { StrategyModule } from "@/types";
 import { toast } from "sonner";
 
@@ -22,52 +24,75 @@ export default function ModuleEditorPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const workspaceId = params.id as string;
+  const moduleId = params.moduleId as string;
 
-  useEffect(() => {
-    const loadModule = async () => {
-      try {
-        const workspaceId = params.id as string;
-        const moduleId = params.moduleId as string;
+  // Subscribe to realtime workspace events
+  const { isConnected } = useRealtimeWorkspaceEvents(workspaceId);
 
-        if (!workspaceId || !moduleId) {
-          toast.error("Invalid workspace or module ID");
-          router.push("/dashboard");
-          return;
-        }
-
-        const loadedWorkspace = await getWorkspace(workspaceId, user?.id);
-        if (!loadedWorkspace) {
-          toast.error("Workspace not found");
-          router.push("/dashboard");
-          return;
-        }
-
-        const loadedModule = loadedWorkspace.modules.find((m) => m.id === moduleId);
-        if (!loadedModule) {
-          toast.error("Module not found");
-          router.push(`/workspace/${workspaceId}`);
-          return;
-        }
-
-        setWorkspace(loadedWorkspace);
-        setModule(loadedModule);
-
-        // Convert blocks to HTML for Tiptap
-        const html = blocksToHTML(loadedModule.blocks);
-        setContent(html);
-      } catch (error) {
-        console.error("Failed to load module:", error);
-        toast.error(
-          error instanceof Error ? error.message : "Failed to load module"
-        );
+  // Function to load module data
+  const loadModule = useCallback(async () => {
+    try {
+      if (!workspaceId || !moduleId) {
+        toast.error("Invalid workspace or module ID");
         router.push("/dashboard");
-      } finally {
-        setIsLoading(false);
+        return;
       }
-    };
 
-    loadModule();
-  }, [params.id, params.moduleId, router, user?.id]);
+      const loadedWorkspace = await getWorkspace(workspaceId, user?.id);
+      if (!loadedWorkspace) {
+        toast.error("Workspace not found");
+        router.push("/dashboard");
+        return;
+      }
+
+      const loadedModule = loadedWorkspace.modules.find((m) => m.id === moduleId);
+      if (!loadedModule) {
+        toast.error("Module not found");
+        router.push(`/workspace/${workspaceId}`);
+        return;
+      }
+
+      setWorkspace(loadedWorkspace);
+      setModule(loadedModule);
+
+      // Convert blocks to HTML for Tiptap
+      const html = blocksToHTML(loadedModule.blocks);
+      setContent(html);
+    } catch (error) {
+      console.error("Failed to load module:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to load module"
+      );
+    }
+  }, [workspaceId, moduleId, user?.id, router]);
+
+  // Initial load
+  useEffect(() => {
+    const init = async () => {
+      setIsLoading(true);
+      await loadModule();
+      setIsLoading(false);
+    };
+    init();
+  }, [loadModule]);
+
+  // Listen for realtime workspace events
+  useWorkspaceEventListener(workspaceId, useCallback((event) => {
+    console.log('[ModuleEditorPage] Received workspace event:', event);
+
+    // Only reload if someone else updated the module
+    if (event.event_type === 'module_updated' && event.metadata?.moduleId === moduleId) {
+      // Check if the update was from a different user
+      if (event.user_id !== user?.id) {
+        toast.info('Module updated by another user', {
+          description: 'Refreshing...',
+          duration: 2000,
+        });
+        loadModule();
+      }
+    }
+  }, [loadModule, moduleId, user?.id]));
 
   const handleContentChange = (newContent: string) => {
     setContent(newContent);
@@ -75,15 +100,25 @@ export default function ModuleEditorPage() {
   };
 
   const handleSave = async () => {
-    if (!workspace || !module) return;
+    if (!workspace || !module || !user?.id) return;
 
     setIsSaving(true);
     try {
       // TODO: Implement save functionality
       // This would convert HTML back to blocks and save to database
+
+      // Trigger workspace event for realtime collaboration
+      await notifyModuleUpdated(
+        workspace.id,
+        user.id,
+        module.id,
+        module.title
+      );
+
       toast.success("Changes saved!");
       setHasUnsavedChanges(false);
     } catch (error) {
+      console.error('Failed to save:', error);
       toast.error("Failed to save changes");
     } finally {
       setIsSaving(false);
@@ -134,9 +169,26 @@ export default function ModuleEditorPage() {
           {/* Module Header */}
           <div className="flex items-start justify-between">
             <div>
-              <h1 className="text-4xl font-bold tracking-tight">
-                {module.title}
-              </h1>
+              <div className="flex items-center gap-3">
+                <h1 className="text-4xl font-bold tracking-tight">
+                  {module.title}
+                </h1>
+                {/* Realtime Connection Indicator */}
+                <AnimatePresence>
+                  {isConnected && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      className="flex items-center gap-1.5 rounded-full bg-green-500/10 px-2.5 py-1 text-xs font-medium text-green-600 dark:text-green-400"
+                      title="Live updates enabled"
+                    >
+                      <Wifi className="h-3 w-3" />
+                      Live
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
               <p className="mt-2 text-muted-foreground">
                 {workspace.name}
               </p>

@@ -1,6 +1,7 @@
 "use server";
 
 import { supabase, isSupabaseConfigured } from "@/lib/database/supabase";
+import { createWorkspaceEvent, WorkspaceEventType } from "@/lib/database/workspace-events-service";
 
 /**
  * Server action to update a block's content
@@ -8,6 +9,7 @@ import { supabase, isSupabaseConfigured } from "@/lib/database/supabase";
 export async function updateBlockContent(
   blockId: string,
   content: string,
+  workspaceId?: string,
   userId?: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
@@ -27,6 +29,16 @@ export async function updateBlockContent(
     if (error) {
       console.error("Failed to update block:", error);
       return { success: false, error: error.message };
+    }
+
+    // Trigger workspace event for realtime updates
+    if (workspaceId && userId) {
+      await createWorkspaceEvent(
+        workspaceId,
+        userId,
+        WorkspaceEventType.MODULE_UPDATED,
+        { blockId, action: 'content_updated' }
+      );
     }
 
     return { success: true };
@@ -81,6 +93,7 @@ export async function updateBlockChecked(
 export async function updateModuleTitle(
   moduleId: string,
   title: string,
+  workspaceId?: string,
   userId?: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
@@ -99,6 +112,16 @@ export async function updateModuleTitle(
     if (error) {
       console.error("Failed to update module:", error);
       return { success: false, error: error.message };
+    }
+
+    // Trigger workspace event for realtime updates
+    if (workspaceId && userId) {
+      await createWorkspaceEvent(
+        workspaceId,
+        userId,
+        WorkspaceEventType.MODULE_UPDATED,
+        { moduleId, moduleTitle: title }
+      );
     }
 
     return { success: true };
@@ -151,6 +174,7 @@ export async function addBlock(
   type: string,
   content: string,
   position: number,
+  workspaceId?: string,
   userId?: string
 ): Promise<{ success: boolean; blockId?: string; error?: string }> {
   try {
@@ -173,6 +197,16 @@ export async function addBlock(
     if (error) {
       console.error("Failed to add block:", error);
       return { success: false, error: error.message };
+    }
+
+    // Trigger workspace event for realtime updates
+    if (workspaceId && userId) {
+      await createWorkspaceEvent(
+        workspaceId,
+        userId,
+        WorkspaceEventType.BLOCK_ADDED,
+        { moduleId, blockType: type, blockId: data.id }
+      );
     }
 
     return { success: true, blockId: data.id };

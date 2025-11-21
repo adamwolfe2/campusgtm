@@ -1,16 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { StrategyModulesGrid } from "@/components/strategy-module-view";
 import { ExportDialog } from "@/components/export-dialog";
 import { ConfirmationDialog } from "@/components/confirmation-dialog";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Share2, Sparkles, Loader2, Trash2 } from "lucide-react";
+import { ArrowLeft, Share2, Sparkles, Loader2, Trash2, Wifi, WifiOff } from "lucide-react";
 import { getWorkspace, deleteWorkspace, type WorkspaceWithModules } from "@/lib/database/workspace-service";
+import { useRealtimeWorkspaceEvents, useWorkspaceEventListener } from "@/lib/realtime/hooks";
 import { toast } from "sonner";
 
 export default function WorkspacePage() {
@@ -21,38 +22,67 @@ export default function WorkspacePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const workspaceId = params.id as string;
 
-  useEffect(() => {
-    const loadWorkspace = async () => {
-      try {
-        const id = params.id as string;
-        if (!id) {
-          toast.error("Invalid workspace ID");
-          router.push("/dashboard");
-          return;
-        }
+  // Subscribe to realtime workspace events
+  const { isConnected } = useRealtimeWorkspaceEvents(workspaceId);
 
-        const loadedWorkspace = await getWorkspace(id, user?.id);
-        if (!loadedWorkspace) {
-          toast.error("Workspace not found");
-          router.push("/dashboard");
-          return;
-        }
-
-        setWorkspace(loadedWorkspace);
-      } catch (error) {
-        console.error("Failed to load workspace:", error);
-        toast.error(
-          error instanceof Error ? error.message : "Failed to load workspace"
-        );
+  // Function to load workspace data
+  const loadWorkspace = useCallback(async () => {
+    try {
+      if (!workspaceId) {
+        toast.error("Invalid workspace ID");
         router.push("/dashboard");
-      } finally {
-        setIsLoading(false);
+        return;
       }
+
+      const loadedWorkspace = await getWorkspace(workspaceId, user?.id);
+      if (!loadedWorkspace) {
+        toast.error("Workspace not found");
+        router.push("/dashboard");
+        return;
+      }
+
+      setWorkspace(loadedWorkspace);
+    } catch (error) {
+      console.error("Failed to load workspace:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to load workspace"
+      );
+    }
+  }, [workspaceId, user?.id, router]);
+
+  // Initial load
+  useEffect(() => {
+    const init = async () => {
+      setIsLoading(true);
+      await loadWorkspace();
+      setIsLoading(false);
+    };
+    init();
+  }, [loadWorkspace]);
+
+  // Listen for realtime workspace events and auto-refresh
+  useWorkspaceEventListener(workspaceId, useCallback((event) => {
+    console.log('[WorkspacePage] Received workspace event:', event);
+
+    // Show a subtle notification
+    const eventMessages: Record<string, string> = {
+      'module_updated': 'Module updated',
+      'block_added': 'Content added',
+      'user_joined': 'User joined workspace',
+      'strategy_generated': 'Strategy generated',
     };
 
+    const message = eventMessages[event.event_type] || 'Workspace updated';
+    toast.info(message, {
+      description: 'Refreshing workspace...',
+      duration: 2000,
+    });
+
+    // Reload workspace data
     loadWorkspace();
-  }, [params.id, router, user?.id]);
+  }, [loadWorkspace]));
 
   const handleDeleteWorkspace = async () => {
     if (!workspace) return;
@@ -109,9 +139,26 @@ export default function WorkspacePage() {
           {/* Workspace Header */}
           <div className="flex items-start justify-between">
             <div>
-              <h1 className="text-4xl font-bold tracking-tight">
-                {workspace.name}
-              </h1>
+              <div className="flex items-center gap-3">
+                <h1 className="text-4xl font-bold tracking-tight">
+                  {workspace.name}
+                </h1>
+                {/* Realtime Connection Indicator */}
+                <AnimatePresence>
+                  {isConnected && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      className="flex items-center gap-1.5 rounded-full bg-green-500/10 px-2.5 py-1 text-xs font-medium text-green-600 dark:text-green-400"
+                      title="Live updates enabled"
+                    >
+                      <Wifi className="h-3 w-3" />
+                      Live
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
               <p className="mt-2 text-muted-foreground">
                 {workspace.companyName}
                 {workspace.companyUrl && (
