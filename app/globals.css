@@ -1,7 +1,15 @@
 @import "tailwindcss";
 
 @custom-variant dark (&:is(.dark *));
-@variant group (&:is(.group *));
+
+/* Define group utility and variants for Tailwind CSS v4 */
+@utility group {
+  /* Marker class for group functionality */
+}
+
+@variant group-hover (.group:hover &);
+@variant group-focus (.group:focus &);
+@variant group-active (.group:active &);
 
 @theme inline {
   /* Breakpoints */
