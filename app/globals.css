@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 @custom-variant dark (&:is(.dark *));
+@variant group (&:is(.group *));
 
 @theme inline {
   /* Breakpoints */
