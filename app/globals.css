@@ -2,11 +2,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Define group utility and variants for Tailwind CSS v4 */
-@utility group {
-  /* Marker class for group functionality */
-}
-
+/* Define group variants for Tailwind CSS v4 */
 @variant group-hover (.group:hover &);
 @variant group-focus (.group:focus &);
 @variant group-active (.group:active &);
