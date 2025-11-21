@@ -3,13 +3,12 @@
 import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
 import { motion, AnimatePresence } from "motion/react"
-import AnimatedGradientWithSvg from "@/fancy/background/animated-gradient-with-svg"
 import ScrambleIn from "@/fancy/text/scramble-in"
 import BreathingText from "@/fancy/text/breathing-text"
 import { PromptInput } from "@/prompt/prompt-input"
 import { Message } from "@/prompt/message"
 import { Reasoning } from "@/prompt/reasoning"
-import { ChatContainer } from "@/prompt/chat-container"
+import { ChatContainerRoot as ChatContainer } from "@/prompt/chat-container"
 import { CodeBlock } from "@/prompt/code-block"
 import { Loader } from "@/prompt/loader"
 import { SystemMessage } from "@/prompt/system-message"
@@ -273,13 +272,8 @@ Want me to dive deeper into any of these areas?`
   return (
     <div className="h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-black text-white flex flex-col overflow-hidden relative">
       {/* Animated Background */}
-      <div className="fixed inset-0 z-0 opacity-30">
-        <AnimatedGradientWithSvg
-          colors={["#6366f1", "#8b5cf6", "#ec4899"]}
-          speed={0.3}
-          opacity={0.4}
-        />
-      </div>
+      <div className="fixed inset-0 z-0 opacity-30 bg-gradient-to-br from-purple-900/20 via-pink-900/20 to-transparent" />
+      <div className="fixed inset-0 z-0 opacity-20 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-500/20 via-transparent to-transparent" />
 
       {/* Navigation */}
       <motion.nav

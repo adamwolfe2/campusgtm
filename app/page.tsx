@@ -3,17 +3,11 @@
 import { useState } from "react"
 import Link from "next/link"
 import { motion, useScroll, useTransform } from "motion/react"
-import AnimatedGradientWithSvg from "@/fancy/background/animated-gradient-with-svg"
-import PixelTrail from "@/fancy/background/pixel-trail"
 import Float from "@/fancy/blocks/float"
 import StackingCards from "@/fancy/blocks/stacking-cards"
 import ScrambleHover from "@/fancy/text/scramble-hover"
 import ScrambleIn from "@/fancy/text/scramble-in"
-import Letter3DSwap from "@/fancy/text/letter-3d-swap"
 import BasicNumberTicker from "@/fancy/text/basic-number-ticker"
-import TextCursorProximity from "@/fancy/text/text-cursor-proximity"
-import ParallaxFloating from "@/fancy/image/parallax-floating"
-import { CursorAttractorAndGravity } from "@/fancy/physics/cursor-attractor-and-gravity"
 import { Button } from "@/ui/button"
 import { Card } from "@/ui/card"
 import { Badge } from "@/ui/badge"
@@ -98,16 +92,8 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-black text-white overflow-hidden relative">
       {/* Animated Background */}
-      <div className="fixed inset-0 z-0">
-        <AnimatedGradientWithSvg
-          colors={["#6366f1", "#8b5cf6", "#ec4899", "#f97316"]}
-          speed={0.5}
-          opacity={0.3}
-        />
-      </div>
-
-      {/* Pixel Trail Effect */}
-      <PixelTrail pixelSize={8} trailLength={20} />
+      <div className="fixed inset-0 z-0 bg-gradient-to-br from-purple-900/20 via-pink-900/20 to-orange-900/20" />
+      <div className="fixed inset-0 z-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-500/10 via-transparent to-transparent" />
 
       {/* Navigation */}
       <motion.nav
@@ -136,15 +122,13 @@ export default function HomePage() {
             <Link href="/ambassadors" className="text-sm hover:text-purple-400 transition-colors">
               Ambassadors
             </Link>
-            <CursorAttractorAndGravity attractorSize={100} force={0.3}>
-              <Button
-                variant="default"
-                size="md"
-                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0"
-              >
-                Get Started
-              </Button>
-            </CursorAttractorAndGravity>
+            <Button
+              variant="default"
+              size="md"
+              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0"
+            >
+              Get Started
+            </Button>
           </div>
         </div>
       </motion.nav>
@@ -175,19 +159,11 @@ export default function HomePage() {
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.3 }}
           >
-            <span className="block">
-              <Letter3DSwap
-                text="Your AI-Powered"
-                className="bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent"
-              />
+            <span className="block bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
+              Your AI-Powered
             </span>
             <span className="block bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 bg-clip-text text-transparent">
-              <TextCursorProximity
-                text="GTM Copilot"
-                radius={200}
-                force={20}
-                ease="easeOut"
-              />
+              GTM Copilot
             </span>
           </motion.h1>
 
@@ -210,18 +186,16 @@ export default function HomePage() {
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.7 }}
           >
-            <CursorAttractorAndGravity attractorSize={120} force={0.4}>
-              <Link href="/chat">
-                <Button
-                  size="lg"
-                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0 text-lg px-8 py-6 group"
-                >
-                  <Zap className="w-5 h-5 mr-2" />
-                  Start Free Trial
-                  <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
-            </CursorAttractorAndGravity>
+            <Link href="/chat">
+              <Button
+                size="lg"
+                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0 text-lg px-8 py-6 group"
+              >
+                <Zap className="w-5 h-5 mr-2" />
+                Start Free Trial
+                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
             <Button
               size="lg"
               variant="outline"
@@ -376,9 +350,7 @@ export default function HomePage() {
             <Card className="bg-gradient-to-br from-purple-600/20 to-pink-600/20 backdrop-blur-xl border-2 border-purple-500/30 p-16 text-center overflow-hidden relative">
               {/* Animated background element */}
               <div className="absolute inset-0 opacity-20">
-                <ParallaxFloating intensity={20}>
-                  <div className="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 blur-3xl" />
-                </ParallaxFloating>
+                <div className="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 blur-3xl" />
               </div>
 
               <div className="relative z-10">
@@ -389,18 +361,16 @@ export default function HomePage() {
                   Join hundreds of universities using Campus GTM to power their student ambassador programs
                 </p>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                  <CursorAttractorAndGravity attractorSize={140} force={0.5}>
-                    <Link href="/chat">
-                      <Button
-                        size="lg"
-                        className="bg-white text-purple-600 hover:bg-gray-100 font-bold text-lg px-10 py-7 group"
-                      >
-                        <Rocket className="w-6 h-6 mr-2" />
-                        Start Free Trial
-                        <ArrowRight className="w-6 h-6 ml-2 group-hover:translate-x-1 transition-transform" />
-                      </Button>
-                    </Link>
-                  </CursorAttractorAndGravity>
+                  <Link href="/chat">
+                    <Button
+                      size="lg"
+                      className="bg-white text-purple-600 hover:bg-gray-100 font-bold text-lg px-10 py-7 group"
+                    >
+                      <Rocket className="w-6 h-6 mr-2" />
+                      Start Free Trial
+                      <ArrowRight className="w-6 h-6 ml-2 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </Link>
                   <Button
                     size="lg"
                     variant="outline"
