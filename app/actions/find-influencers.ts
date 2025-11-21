@@ -380,7 +380,7 @@ export function calculateEngagementRate(
 /**
  * Estimate cost based on follower count and engagement
  */
-export function estimateInfluencerCost(
+function estimateInfluencerCost(
   followerCount: number,
   engagementRate: number,
   platform: string
