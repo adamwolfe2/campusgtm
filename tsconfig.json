@@ -22,6 +22,8 @@
       "@/*": ["./*"],
       "@/prompt/*": ["./components/prompt-kit/*"],
       "@/fancy/*": ["./components/fancy/*"],
+      "@/ui/*": ["./components/ui/*"],
+      "@/hooks/*": ["./hooks/fancy/*"],
       "@/hooks/fancy/*": ["./hooks/fancy/*"]
     }
   },
