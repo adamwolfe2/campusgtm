@@ -328,6 +328,32 @@ export interface Database {
           signed_up_at?: string;
         };
       };
+      workspace_events: {
+        Row: {
+          id: string;
+          workspace_id: string;
+          user_id: string | null;
+          event_type: 'module_updated' | 'block_added' | 'user_joined' | 'strategy_generated';
+          metadata: Record<string, unknown> | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          workspace_id: string;
+          user_id?: string | null;
+          event_type: 'module_updated' | 'block_added' | 'user_joined' | 'strategy_generated';
+          metadata?: Record<string, unknown> | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          workspace_id?: string;
+          user_id?: string | null;
+          event_type?: 'module_updated' | 'block_added' | 'user_joined' | 'strategy_generated';
+          metadata?: Record<string, unknown> | null;
+          created_at?: string;
+        };
+      };
     };
     Views: {
       [_ in never]: never;

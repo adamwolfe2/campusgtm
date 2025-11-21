@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useUser } from "@clerk/nextjs";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,8 @@ import {
   type Notification,
   type NotificationType,
 } from "@/lib/database/notification-service";
+import { useRealtimeNotifications, useNotificationListener } from "@/lib/realtime/hooks";
+import { toast } from "sonner";
 
 const getNotificationIcon = (type: NotificationType) => {
   switch (type) {
@@ -57,6 +59,9 @@ export function NotificationsDropdown() {
   const [isLoading, setIsLoading] = useState(true);
   const unreadCount = notifications.filter((n) => !n.read).length;
 
+  // Subscribe to realtime notifications
+  const { isConnected } = useRealtimeNotifications(user?.id);
+
   // Fetch notifications on mount and when user changes
   useEffect(() => {
     if (!user?.id) {
@@ -78,6 +83,47 @@ export function NotificationsDropdown() {
 
     fetchNotifications();
   }, [user?.id]);
+
+  // Handle incoming realtime notifications
+  const handleNewNotification = useCallback((payload: any) => {
+    console.log('[NotificationsDropdown] New notification received:', payload);
+
+    // The payload contains the broadcast data
+    // Extract the notification from the payload
+    const newNotification = payload?.payload?.new || payload?.new;
+
+    if (newNotification) {
+      setNotifications((prev) => {
+        // Check if notification already exists (prevent duplicates)
+        const exists = prev.some(n => n.id === newNotification.id);
+        if (exists) return prev;
+
+        // Add to the beginning of the list
+        return [
+          {
+            id: newNotification.id,
+            userId: newNotification.user_id,
+            type: newNotification.type as NotificationType,
+            title: newNotification.title,
+            message: newNotification.message,
+            read: newNotification.read || false,
+            metadata: newNotification.metadata,
+            createdAt: new Date(newNotification.created_at),
+            updatedAt: new Date(newNotification.updated_at || newNotification.created_at),
+          },
+          ...prev,
+        ];
+      });
+
+      // Show toast notification
+      toast.success(newNotification.title, {
+        description: newNotification.message,
+      });
+    }
+  }, []);
+
+  // Listen for realtime notification events
+  useNotificationListener(handleNewNotification);
 
   const handleMarkAsRead = async (id: string) => {
     if (!user?.id) return;
